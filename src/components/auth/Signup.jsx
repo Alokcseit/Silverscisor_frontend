@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { User, Mail, Phone, Lock, Eye, EyeOff, Scissors, ArrowRight, Sparkles, Sun, Moon } from 'lucide-react';
 import { DecorativeSVGSignup } from '../../util/DecorativeSVGSignup';
 import DecorativeSVGSignupDark from '../../util/DecorativeSVGSignupDark';
-import { useTheme } from '../../context/themeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
   const { theme, toggleTheme } = useTheme();

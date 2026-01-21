@@ -4,7 +4,7 @@ import { Mail, Lock, Eye, EyeOff, Scissors, ArrowRight, Phone, Sparkles, Sun, Mo
 import { useAuth } from '../../context/AuthContext';
 import { DecorativeSVG } from '../../util/DecorativeSVG';
 import DecorativeSVGLoginDark from '../../util/DecorativeSVGLoginDark';
-import { useTheme } from '../../context/themeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const Login = ({ onSwitchToSignup }) => {
     const { theme, toggleTheme } = useTheme();
