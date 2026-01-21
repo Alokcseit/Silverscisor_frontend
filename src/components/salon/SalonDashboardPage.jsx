@@ -1,12 +1,13 @@
+// src/pages/SalonDashboardPage.jsx
 
 import React, { useState } from 'react';
 import SalonHeader from './SalonHeader';
 import SalonStats from './SalonStats';
 import SalonBookingsList from './SalonBookingsList';
-import SalonSidebar from './SalonSidebar';
+import SalonSidebar from "./SalonSidebar"
 
-const SalonDashboardPage = () => {
-  const [currentView, setCurrentView] = useState('dashboard'); 
+const SalonDashboardPage = ({ userData, onLogout }) => {
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'bookings', 'services', 'settings'
   const [bookings, setBookings] = useState([
     {
       id: 1,
@@ -64,7 +65,7 @@ const SalonDashboardPage = () => {
       {/* Main Content Area */}
       <div className="flex-1">
         {/* Header */}
-        <SalonHeader />
+        <SalonHeader userData={userData} onLogout={onLogout} />
         
         {/* Stats Dashboard */}
         {currentView === 'dashboard' && (

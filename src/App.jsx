@@ -1,68 +1,93 @@
+// src/App.jsx
 
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import CustomerHomePage from './components/customer/CustomerHomePage';
 import SalonDashboardPage from './components/salon/SalonDashboardPage';
+import AuthPage from './components/AuthPage';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { BookingProvider, useBooking } from './context/BookingContext';
+import { NotificationProvider, useNotification } from './context/NotificationContext';
+import LoadingSpinner from './components/common/LoadingSpinner';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import './App.css';
 
-function App() {
-  const [userType, setUserType] = useState('customer'); // 'customer' or 'salon'
+function AppRoutes() {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  console.log(isAuthenticated,"dagkfhd",user)
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+        <LoadingSpinner size="lg" message="Loading Silverscisor..." />
+      </div>
+    );
+  }
 
   return (
-    <Router>
-      <div className="App">
-        {/* User Type Switcher - Development ke liye */}
-        <div className="fixed top-15 right-4 z-50 bg-white shadow-lg rounded-lg p-2">
-          <p className="text-sm font-semibold mb-2">Switch View:</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setUserType('customer')}
-              className={`px-2 py-1 rounded-lg font-medium transition ${
-                userType === 'customer'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Customer
-            </button>
-            <button
-              onClick={() => setUserType('salon')}
-              className={`px-2 py-1 rounded-lg font-medium transition ${
-                userType === 'salon'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Salon
-            </button>
-          </div>
-        </div>
+    <Routes>
+      {/* Auth Route */}
+      <Route
+        path="/auth"
+        element={
+          isAuthenticated ? (
+            <Navigate to={user?.userType === 'customer' ? '/customer' : '/salon'} replace />
+          ) : (
+            <AuthPage />
+          )
+        }
+      />
 
-        {/* Routes */}
-        <Routes>
-          {/* Customer Routes */}
-          <Route 
-            path="/" 
-            element={userType === 'customer' ? <CustomerHomePage /> : <Navigate to="/salon" />} 
-          />
-          <Route 
-            path="/customer" 
-            element={<CustomerHomePage />} 
-          />
-          
-          {/* Salon Routes */}
-          <Route 
-            path="/salon" 
-            element={userType === 'salon' ? <SalonDashboardPage /> : <Navigate to="/" />} 
-          />
-          
-          {/* Default Redirect */}
-          <Route 
-            path="*" 
-            element={<Navigate to="/" />} 
-          />
-        </Routes>
-      </div>
+      {/* Customer Routes */}
+      <Route
+        path="/customer"
+        element={
+          <ProtectedRoute requiredUserType="customer">
+            <CustomerHomePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Salon Routes */}
+      <Route
+        path="/salon"
+        element={
+          <ProtectedRoute requiredUserType="salon_owner">
+            <SalonDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default Redirect */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <Navigate to={user?.userType === 'customer' ? '/customer' : '/salon'} replace />
+          ) : (
+            <Navigate to="/auth" replace />
+          )
+        }
+      />
+
+      {/* 404 Redirect */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <BookingProvider>
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
+        </BookingProvider>
+      </AuthProvider>
     </Router>
   );
 }

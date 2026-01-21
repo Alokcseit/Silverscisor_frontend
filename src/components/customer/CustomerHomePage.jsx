@@ -9,8 +9,7 @@ import ConfirmationModal from './ConfirmationModal';
 import CustomerBottomNav from './CustomerBottomNav';
 import CustomerBookingHistory from './CustomerBookingHistory';
 
-
-const CustomerHomePage = () => {
+const CustomerHomePage = ({ userData, onLogout }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -21,8 +20,8 @@ const CustomerHomePage = () => {
   const [userBookings, setUserBookings] = useState([
     {
       id: 1001,
-      customerName: 'राहुल कुमार',
-      customerPhone: '+91 98765 43210',
+      customerName: userData?.name || 'राहुल कुमार',
+      customerPhone: userData?.phone || '+91 98765 43210',
       service: { name: 'Haircut', duration: '30 मिनट', price: 200 },
       time: '11:00 AM',
       date: '2026-01-20',
@@ -30,8 +29,8 @@ const CustomerHomePage = () => {
     },
     {
       id: 1002,
-      customerName: 'राहुल कुमार',
-      customerPhone: '+91 98765 43210',
+      customerName: userData?.name || 'राहुल कुमार',
+      customerPhone: userData?.phone || '+91 98765 43210',
       service: { name: 'Haircut + Beard', duration: '45 मिनट', price: 250 },
       time: '02:00 PM',
       date: '2026-01-25',
@@ -44,7 +43,9 @@ const CustomerHomePage = () => {
     const newBooking = {
       ...booking,
       id: Date.now(),
-      status: 'confirmed'
+      status: 'confirmed',
+      customerName: userData?.name,
+      customerPhone: userData?.phone
     };
     setUserBookings([...userBookings, newBooking]);
     setBookingDetails(newBooking);
@@ -53,9 +54,14 @@ const CustomerHomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
-      <CustomerHeader currentView={currentView} setCurrentView={setCurrentView} />
+      <CustomerHeader 
+        currentView={currentView} 
+        setCurrentView={setCurrentView}
+        userData={userData}
+        onLogout={onLogout}
+      />
       
       {/* Home View */}
       {currentView === 'home' && (
@@ -95,6 +101,5 @@ const CustomerHomePage = () => {
     </div>
   );
 };
-
 
 export default CustomerHomePage;
