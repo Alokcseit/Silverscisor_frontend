@@ -86,12 +86,14 @@ const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
       {theme === 'light' ? <DecorativeSVGSignup /> : <DecorativeSVGSignupDark />}
      
       <div className="w-full max-w-md relative z-10">
-            <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full text-amber-400"
-        >
-          {theme === "dark" ? <Sun /> : <Moon />}
-        </button>
+            <div className="flex flex-row justify-center">
+                         <button
+                     onClick={toggleTheme}
+                     className="p-2 rounded-full text-amber-400"
+                   >
+                     {theme === "dark" ? <Sun /> : <Moon />}
+                   </button>
+                       </div>
         {/* Main Card */}
         <div className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-rose-900/10 dark:shadow-black/30 border border-white/60 dark:border-white/10 p-8 relative overflow-hidden">
           {/* Subtle gradient overlay */}

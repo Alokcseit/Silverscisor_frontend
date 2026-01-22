@@ -11,7 +11,6 @@ import { BookingProvider, useBooking } from './context/BookingContext';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import './App.css';
 
 function AppRoutes() {
   const { isAuthenticated, user, isLoading } = useAuth();

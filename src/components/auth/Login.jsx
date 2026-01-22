@@ -82,12 +82,14 @@ const Login = ({ onSwitchToSignup }) => {
 
 
       <div className="w-full max-w-md relative z-10">
-            <button
+            <div className="flex flex-row justify-center">
+              <button
           onClick={toggleTheme}
           className="p-2 rounded-full text-amber-400"
         >
           {theme === "dark" ? <Sun /> : <Moon />}
         </button>
+            </div>
         {/* Main Card */}
         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-rose-900/10 dark:shadow-black/30 p-8 border border-white/50 dark:border-white/10 transition-all duration-500 hover:shadow-3xl">
           

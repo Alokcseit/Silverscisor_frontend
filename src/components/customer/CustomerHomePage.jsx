@@ -54,7 +54,7 @@ const CustomerHomePage = ({ userData, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0 dark:bg-gray-900 ">
       {/* Header */}
       <CustomerHeader 
         currentView={currentView} 
