@@ -5,6 +5,7 @@ import { User, Mail, Phone, Lock, Eye, EyeOff, Scissors, ArrowRight, Sparkles, S
 import { DecorativeSVGSignup } from '../../util/DecorativeSVGSignup';
 import DecorativeSVGSignupDark from '../../util/DecorativeSVGSignupDark';
 import { useTheme } from '../../context/ThemeContext';
+import SalonMorphIcon from '../../util/SalonMorphIcon';
 
 const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
   const { theme, toggleTheme } = useTheme();
@@ -104,7 +105,7 @@ const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
             {/* Header */}
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-400 via-rose-500 to-amber-500 rounded-2xl mb-4 shadow-lg shadow-rose-500/30 dark:shadow-rose-500/20 transform hover:scale-105 transition-transform duration-300">
-                <Scissors className="w-8 h-8 text-white" />
+                <SalonMorphIcon />
               </div>
               <h1 className="text-2xl font-bold text-gray-800 dark:text-slate-100 mb-1">
                 Silverscisor

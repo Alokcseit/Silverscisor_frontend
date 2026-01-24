@@ -1,83 +1,82 @@
 import React from 'react';
-import { Star, Scissors, User, Palette, Sparkles, Zap, Clock, CheckCircle2 } from 'lucide-react';
-// ध्यान दें: अपने फोल्डर स्ट्रक्चर के अनुसार सही पाथ दें
+import { Star, Scissors, User, Palette, Sparkles, Zap, Clock, Check, ChevronRight } from 'lucide-react';
 import DecorativeBackground from '../../util/DecorativeBackground';
 
 const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingForm }) => {
   
-  // Services Data with Icons added
   const services = [
     {
       id: 1,
       name: 'Haircut',
       icon: Scissors,
-      duration: '30 मिनट',
+      duration: '30 min',
       price: 200,
-      description: 'प्रोफेशनल हेयरकट सर्विस',
+      description: 'Classic & modern cuts tailored to your style.',
       rating: 4.5,
       reviews: 120,
-      color: 'text-blue-500',
-      bg: 'bg-blue-100 dark:bg-blue-900/30'
+      gradient: 'from-blue-500 to-cyan-400',
+      shadow: 'shadow-blue-500/20'
     },
     {
       id: 2,
       name: 'Beard Trim',
       icon: User,
-      duration: '15 मिनट',
+      duration: '15 min',
       price: 100,
-      description: 'दाढ़ी की स्टाइलिंग और ट्रिमिंग',
+      description: 'Sharp lines and perfect grooming.',
       rating: 4.7,
       reviews: 95,
-      color: 'text-green-500',
-      bg: 'bg-green-100 dark:bg-green-900/30'
+      gradient: 'from-emerald-500 to-teal-400',
+      shadow: 'shadow-emerald-500/20'
     },
     {
       id: 3,
-      name: 'Haircut + Beard',
-      icon: Zap, // Combo icon
-      duration: '45 minutes',
+      name: 'Hair + Beard',
+      icon: Zap,
+      duration: '45 min',
       price: 250,
-      description: 'COMBO SERVICE & BEST DEAL',
+      description: 'Complete makeover combo package.',
       rating: 4.8,
       reviews: 200,
-      color: 'text-purple-500',
-      bg: 'bg-purple-100 dark:bg-purple-900/30'
+      gradient: 'from-violet-600 to-purple-500', // Premium color
+      shadow: 'shadow-purple-500/20',
+      featured: true
     },
     {
       id: 4,
       name: 'Hair Color',
       icon: Palette,
-      duration: '60 minutes',
+      duration: '60 min',
       price: 800,
-      description: 'ARTISTIC HAIR COLOR',
+      description: 'Premium coloring & highlights.',
       rating: 4.6,
       reviews: 80,
-      color: 'text-pink-500',
-      bg: 'bg-pink-100 dark:bg-pink-900/30'
+      gradient: 'from-pink-500 to-rose-400',
+      shadow: 'shadow-pink-500/20'
     },
     {
       id: 5,
       name: 'Facial',
       icon: Sparkles,
-      duration: '45 minutes',
+      duration: '45 min',
       price: 500,
-      description: 'SKINN CARE & FACIAL',
+      description: 'Deep cleansing & glow therapy.',
       rating: 4.9,
       reviews: 150,
-      color: 'text-orange-500',
-      bg: 'bg-orange-100 dark:bg-orange-900/30'
+      gradient: 'from-orange-500 to-amber-400',
+      shadow: 'shadow-orange-500/20'
     },
     {
       id: 6,
-      name: 'Head Massage',
-      icon: User, // Can use a relaxed icon
-      duration: '20 मिनट',
+      name: 'Massage',
+      icon: User,
+      duration: '20 min',
       price: 150,
-      description: 'आराम देने वाली मसाज',
+      description: 'Relaxing head & shoulder massage.',
       rating: 5.0,
       reviews: 75,
-      color: 'text-teal-500',
-      bg: 'bg-teal-100 dark:bg-teal-900/30'
+      gradient: 'from-indigo-500 to-blue-500',
+      shadow: 'shadow-indigo-500/20'
     }
   ];
 
@@ -90,30 +89,34 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
   };
 
   return (
-    // Main Container set to relative so background stays inside
-    <div className="relative w-full bg-gray-50 dark:bg-gray-900 py-12 transition-colors duration-300 mb-10 overflow-hidden">
+    <div className="relative w-full bg-gray-50 dark:bg-gray-950 py-16 transition-colors duration-300 overflow-hidden">
       
-      {/* 1. SVG Background Added Here */}
+      {/* Dynamic Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
+           style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
+      </div>
+      
       <div className="absolute inset-0 z-0">
          <DecorativeBackground />
       </div>
 
-      {/* 2. Content Container (z-10 ensures content is above background) */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
-            हमारी प्रीमियम <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">सेवाएं</span>
+        {/* Modern Header */}
+        <div className="text-center mb-16 space-y-4">
+          <span className="inline-block py-1 px-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs font-bold tracking-wider uppercase border border-purple-200 dark:border-purple-700">
+            Services Menu
+          </span>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+            Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Style</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-             
-            अपने लिए सबसे बेहतरीन पैकेज चुनें और रिलैक्स करें।
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            Premium grooming services designed for the modern gentleman.
           </p>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Premium Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {services.map((service) => {
             const IconComponent = service.icon;
             const isSelected = selectedService?.id === service.id;
@@ -122,60 +125,86 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
               <div
                 key={service.id}
                 onClick={() => handleServiceClick(service)}
-                className={`group relative overflow-hidden rounded-2xl transition-all duration-300 cursor-pointer border-2 backdrop-blur-sm
-                  ${isSelected 
-                    ? 'border-purple-500 bg-white/90 dark:bg-gray-800/90 shadow-xl shadow-purple-500/20 scale-105' 
-                    : 'border-transparent bg-white/80 dark:bg-gray-800/80 shadow-lg hover:shadow-2xl hover:scale-[1.02] hover:border-purple-300 dark:hover:border-purple-700'
-                  }
+                className={`
+                  group relative rounded-3xl p-1 cursor-pointer transition-all duration-300 ease-out
+                  ${isSelected ? 'transform -translate-y-2' : 'hover:-translate-y-1'}
                 `}
               >
-                {/* Internal Card Blob Effect */}
-                <div className={`absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 rounded-full opacity-20 blur-2xl transition-all duration-500 group-hover:scale-150 ${service.bg.replace('/30', '')}`}></div>
+                {/* Gradient Border Effect (Absolute) */}
+                <div className={`
+                  absolute inset-0 rounded-3xl bg-gradient-to-br opacity-0 transition-opacity duration-300
+                  ${service.gradient}
+                  ${isSelected ? 'opacity-100 blur-sm' : 'group-hover:opacity-70 group-hover:blur-sm'}
+                `}></div>
 
-                <div className="p-6 relative z-10">
-                  {/* Top Row: Icon and Price */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className={`p-3 rounded-2xl ${service.bg} ${service.color} transition-transform duration-500 group-hover:rotate-12`}>
-                      <IconComponent className="w-8 h-8" strokeWidth={1.5} />
+                {/* Main Card Content */}
+                <div className={`
+                  relative h-full bg-white dark:bg-gray-900 rounded-[22px] p-6 overflow-hidden border transition-colors
+                  ${isSelected ? 'border-transparent' : 'border-gray-100 dark:border-gray-800'}
+                `}>
+                  
+                  {/* Background Blobs for specific card */}
+                  <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity`}></div>
+
+                  {/* Top Section: Icon & Price */}
+                  <div className="flex justify-between items-start mb-6">
+                    {/* Icon Box */}
+                    <div className={`
+                      w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3
+                      bg-gradient-to-br ${service.gradient} ${service.shadow}
+                    `}>
+                      <IconComponent className="w-7 h-7" strokeWidth={1.5} />
                     </div>
+
+                    {/* Price Tag */}
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-gray-900 dark:text-white">₹{service.price}</p>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500">Starting price</p>
+                    </div>
+                  </div>
+
+                  {/* Middle Section: Info */}
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                      {service.name}
+                      {service.featured && (
+                         <span className="bg-gradient-to-r from-amber-200 to-yellow-400 text-yellow-900 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+                           BESTSELLER
+                         </span>
+                      )}
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                      {service.description}
+                    </p>
+                  </div>
+
+                  {/* Bottom Section: Metrics & Action */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
                     
-                    <div className="flex flex-col items-end">
-                       <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                        ₹{service.price}
-                       </span>
-                       {isSelected && (
-                         <div className="flex items-center gap-1 text-xs font-bold text-green-600 dark:text-green-400 animate-pulse">
-                           <CheckCircle2 className="w-3 h-3" /> Selected
-                         </div>
-                       )}
+                    {/* Duration & Rating */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        {service.duration}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs font-bold text-gray-700 dark:text-gray-300">
+                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                        {service.rating} <span className="text-gray-400 font-normal">({service.reviews})</span>
+                      </div>
+                    </div>
+
+                    {/* Select Button Indicator */}
+                    <div className={`
+                      h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300
+                      ${isSelected 
+                        ? `bg-gradient-to-r ${service.gradient} text-white shadow-md scale-110` 
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
+                      }
+                    `}>
+                      {isSelected ? <Check className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                     </div>
                   </div>
 
-                  {/* Content: Title & Desc */}
-                  <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                    {service.name}
-                  </h4>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
-
-                  {/* Footer: Time & Rating */}
-                  <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4 mt-2">
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-                      <Clock className="w-4 h-4" />
-                      <span>{service.duration}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                        {service.rating}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        ({service.reviews})
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
             );

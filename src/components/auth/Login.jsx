@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { DecorativeSVG } from '../../util/DecorativeSVG';
 import DecorativeSVGLoginDark from '../../util/DecorativeSVGLoginDark';
 import { useTheme } from '../../context/ThemeContext';
+import SalonMorphIcon from '../../util/SalonMorphIcon';
 
 const Login = ({ onSwitchToSignup }) => {
     const { theme, toggleTheme } = useTheme();
@@ -97,7 +98,7 @@ const Login = ({ onSwitchToSignup }) => {
           <div className="text-center mb-8">
             <div className="relative inline-flex items-center justify-center mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/30 dark:shadow-rose-500/20 transition-transform duration-300 hover:scale-110 hover:rotate-3">
-                <Scissors className="w-8 h-8 text-white" />
+                <SalonMorphIcon />
               </div>
               <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-amber-400 animate-pulse" />
             </div>
