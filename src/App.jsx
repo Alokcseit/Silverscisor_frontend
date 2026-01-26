@@ -53,7 +53,7 @@ function AppRoutes() {
       <Route
         path="/salon"
         element={
-          <ProtectedRoute requiredUserType="salon_owner">
+          <ProtectedRoute requiredUserType="salon">
             <SalonDashboardPage />
           </ProtectedRoute>
         }

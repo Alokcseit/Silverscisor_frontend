@@ -6,6 +6,8 @@ import { DecorativeSVG } from '../../util/DecorativeSVG';
 import DecorativeSVGLoginDark from '../../util/DecorativeSVGLoginDark';
 import { useTheme } from '../../context/ThemeContext';
 import SalonMorphIcon from '../../util/SalonMorphIcon';
+import { loginAPI } from './services/login';
+import Swal from 'sweetalert2';
 
 const Login = ({ onSwitchToSignup }) => {
     const { theme, toggleTheme } = useTheme();
@@ -53,28 +55,45 @@ const Login = ({ onSwitchToSignup }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validate()) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    // 🔁 Simulating API
-    setTimeout(() => {
-      const mockUser = {
-        name: 'Rahul Kumar',
-        email: formData.email || 'user@example.com',
-        phone: formData.phone || '9876543210',
-        userType: 'customer'
-      };
+  try {
+    // 1️⃣ Call the API
+    const data = await loginAPI(formData);
+    console.log("data",data)
+    const token = data?.data.token; 
+    const user = data?.data.user || {}; 
 
-      const mockToken = 'mock-token-12345';
+    // 3️⃣ Save token securely (Context function provided in your snippet)
+    // You might also want to save it to sessionStorage here if your 'login' function doesn't do it
+    localStorage.setItem("authToken", token); 
+    
+    login(user, token); 
 
-      login(mockUser, mockToken); // ✅ ONLY THIS
+    // 4️⃣ Optional: Success Alert
+    Swal.fire({
+      icon: 'success',
+      title: 'Login Successful',
+      text: `Welcome back, ${user.username || 'User'}!`,
+      timer: 1500,
+      showConfirmButton: false
+    });
 
-      setIsLoading(false);
-    }, 2000);
-  };
+  } catch (error) {
+    // 5️⃣ Handle Errors
+    Swal.fire({
+      icon: 'error',
+      title: 'Login Failed',
+      text: error.message,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">

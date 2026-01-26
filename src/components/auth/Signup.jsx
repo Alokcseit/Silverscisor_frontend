@@ -6,6 +6,8 @@ import { DecorativeSVGSignup } from '../../util/DecorativeSVGSignup';
 import DecorativeSVGSignupDark from '../../util/DecorativeSVGSignupDark';
 import { useTheme } from '../../context/ThemeContext';
 import SalonMorphIcon from '../../util/SalonMorphIcon';
+import Swal from 'sweetalert2';
+import { signupAPI } from './services/signup';
 
 const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
   const { theme, toggleTheme } = useTheme();
@@ -66,20 +68,43 @@ const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    // TODO: API call for signup
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Signup data:', formData);
-      onSignupSuccess(formData);
-    }, 2000);
-  };
+  try {
+    // 1️⃣ Call the Signup API
+    const responseData = await signupAPI(formData);
+
+    // 2️⃣ Success Alert
+    Swal.fire({
+      icon: 'success',
+      title: 'Signup Successful!',
+      text: 'Your account has been created successfully.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+    // 3️⃣ Call parent handler (e.g., to switch to login screen)
+    if (onSignupSuccess) {
+        // Pass response data or formData based on what your app needs
+        onSignupSuccess(responseData); 
+    }
+
+  } catch (error) {
+    // 4️⃣ Error Alert
+    Swal.fire({
+      icon: 'error',
+      title: 'Signup Failed',
+      text: error.message,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
