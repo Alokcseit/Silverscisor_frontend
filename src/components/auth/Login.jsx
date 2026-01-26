@@ -9,7 +9,7 @@ import SalonMorphIcon from '../../util/SalonMorphIcon';
 import { loginAPI } from './services/login';
 import Swal from 'sweetalert2';
 
-const Login = ({ onSwitchToSignup }) => {
+const Login = ({ onSwitchToSignup, onSwitchToForgotPassword}) => {
     const { theme, toggleTheme } = useTheme();
   const { login } = useAuth(); // 👈 AuthContext
   const [loginMethod, setLoginMethod] = useState('email');
@@ -256,6 +256,7 @@ const Login = ({ onSwitchToSignup }) => {
               <button
                 type="button"
                 className="text-sm text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 font-medium transition-colors hover:underline underline-offset-2"
+                onClick={onSwitchToForgotPassword}
               >
                 Forgot Password?
               </button>

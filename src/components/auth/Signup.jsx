@@ -154,9 +154,9 @@ const Signup = ({ onSwitchToLogin, onSignupSuccess }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, userType: 'salon_owner' })}
+                  onClick={() => setFormData({ ...formData, userType: 'salon' })}
                   className={`py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                    formData.userType === 'salon_owner'
+                    formData.userType === 'salon'
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 dark:shadow-emerald-500/15 scale-[1.02]'
                       : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'
                   }`}

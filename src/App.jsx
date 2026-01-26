@@ -11,6 +11,7 @@ import { BookingProvider, useBooking } from './context/BookingContext';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import ResetPassword from './components/auth/ResetPassword';
 
 function AppRoutes() {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -39,6 +40,7 @@ function AppRoutes() {
         }
       />
 
+      <Route path="/reset-password" element={<ResetPassword />} />
       {/* Customer Routes */}
       <Route
         path="/customer"
