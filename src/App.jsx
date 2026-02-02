@@ -12,7 +12,7 @@ import { NotificationProvider, useNotification } from './context/NotificationCon
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ResetPassword from './components/auth/ResetPassword';
-
+import {QueueProvider} from './context/QueueContext'
 function AppRoutes() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -84,9 +84,11 @@ function App() {
     <Router>
       <AuthProvider>
         <BookingProvider>
+          <QueueProvider>
           <NotificationProvider>
             <AppRoutes />
           </NotificationProvider>
+          </QueueProvider>
         </BookingProvider>
       </AuthProvider>
     </Router>

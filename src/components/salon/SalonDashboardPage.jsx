@@ -1,13 +1,18 @@
 // src/pages/SalonDashboardPage.jsx
 
 import React, { useState } from 'react';
-import SalonHeader from './SalonHeader';
-import SalonStats from './SalonStats';
-import SalonBookingsList from './SalonBookingsList';
-import SalonSidebar from "./SalonSidebar"
+import SalonHeader from '../salon/SalonHeader';
+import SalonStats from '../salon/SalonStats';
+import SalonBookingsList from '../salon/SalonBookingsList';
+import SalonBottomNav from '../salon/SalonBottomNav';
 
-const SalonDashboardPage = ({ userData, onLogout }) => {
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'bookings', 'services', 'settings'
+import { Users, Scissors, DollarSign, Settings as SettingsIcon } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import QueueManager from './salonQueue/QueueManager';
+
+const SalonDashboardPage = () => {
+  const { user } = useAuth();
+  const [currentView, setCurrentView] = useState('dashboard');
   const [bookings, setBookings] = useState([
     {
       id: 1,
@@ -55,19 +60,14 @@ const SalonDashboardPage = ({ userData, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar - Desktop Only */}
-      <SalonSidebar 
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-      />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0">
+      {/* Header */}
+      <SalonHeader />
       
       {/* Main Content Area */}
-      <div className="flex-1">
-        {/* Header */}
-        <SalonHeader userData={userData} onLogout={onLogout} />
+      <div className="w-full">
         
-        {/* Stats Dashboard */}
+        {/* Dashboard View */}
         {currentView === 'dashboard' && (
           <>
             <SalonStats bookings={bookings} />
@@ -91,19 +91,54 @@ const SalonDashboardPage = ({ userData, onLogout }) => {
         {/* Services View */}
         {currentView === 'services' && (
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">सेवाएं प्रबंधन</h2>
-            <p className="text-gray-600">यहाँ सेवाएं add/edit करें (Coming Soon)</p>
+            <div className="text-center">
+              <Scissors className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Services Management</h2>
+              <p className="text-gray-600 dark:text-gray-400">Add and manage your salon services (Coming Soon)</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Customers View */}
+        {currentView === 'customers' && (
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="text-center">
+              <Users className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Customer Management</h2>
+              <p className="text-gray-600 dark:text-gray-400">View and manage your customers (Coming Soon)</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Earnings View */}
+        {currentView === 'earnings' && (
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="text-center">
+              <DollarSign className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Earnings & Reports</h2>
+              <p className="text-gray-600 dark:text-gray-400">Track your revenue and reports (Coming Soon)</p>
+            </div>
           </div>
         )}
         
         {/* Settings View */}
         {currentView === 'settings' && (
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">सेटिंग्स</h2>
-            <p className="text-gray-600">सैलून की सेटिंग्स (Coming Soon)</p>
+            <div className="text-center">
+              <SettingsIcon className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Salon Settings</h2>
+              <p className="text-gray-600 dark:text-gray-400">Configure your salon settings (Coming Soon)</p>
+            </div>
           </div>
         )}
+
+        {currentView === 'queue' && (
+          <QueueManager />
+        )}
       </div>
+
+      {/* Bottom Navigation */}
+      <SalonBottomNav currentView={currentView} setCurrentView={setCurrentView} />
     </div>
   );
 };
