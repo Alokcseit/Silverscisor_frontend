@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { Mail, ArrowRight, ArrowLeft, Sparkles, Sun, Moon } from 'lucide-react';
 import DecorativeSVGLoginDark from '../../util/DecorativeSVGLoginDark';
-
 import SalonMorphIcon from '../../util/SalonMorphIcon';
 import Swal from 'sweetalert2';
 import { useTheme } from '../../context/ThemeContext';
 import DecorativeSVG from '../../util/DecorativeSVG';
+import axios from 'axios';
 
 const ForgotPassword = ({ onBackToLogin }) => {
   const { theme, toggleTheme } = useTheme();
@@ -30,32 +30,28 @@ const ForgotPassword = ({ onBackToLogin }) => {
 
     setIsLoading(true);
 
-    try {
-      // 👇 API Call Simulation (Yahan apni API integrate karein)
-      // await api.forgotPassword({ email });
-      
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Fake delay
-
-      // Success Alert
-      Swal.fire({
-        icon: 'success',
-        title: 'Email Sent!',
-        text: `We have sent a password reset link to ${email}`,
-        confirmButtonColor: '#f43f5e' // Matches Rose color
-      }).then(() => {
-         // Optional: Automatically go back to login after success
-         // onBackToLogin(); 
-      });
-
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Something went wrong. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+   try {
+    console.log("email",email)
+  const response = await axios.post('https://silverscisor-frontend.vercel.app/api/v1/auth/forgot-password',  {email} );
+  console.log(response)
+  if (response.status === 200) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Email Sent!',
+      text: `We have sent a password reset link to ${email}`,
+      confirmButtonColor: '#f43f5e'
+    }).then(() => {
+       onBackToLogin(); // Reset ke baad user ko login par bhejna achha practice hai
+    });
+  }
+} catch (error) {
+  setError(error.response?.data?.message || 'Something went wrong');
+  Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: error.response?.data?.message || 'Email not found or server error',
+  });
+}
   };
 
   return (

@@ -8,6 +8,7 @@ import SalonMorphIcon from '../../util/SalonMorphIcon';
 import Swal from 'sweetalert2';
 import { useTheme } from '../../context/ThemeContext';
 import DecorativeSVG from '../../util/DecorativeSVG';
+import axios from 'axios';
 
 const ResetPassword = () => {
   const { theme, toggleTheme } = useTheme();
@@ -28,32 +29,41 @@ const ResetPassword = () => {
 
   // Verify token on component mount
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setIsValidToken(false);
-        setIsVerifying(false);
-        return;
-      }
+  const verifyToken = async () => {
+    if (!token) {
+      setIsValidToken(false);
+      setIsVerifying(false);
+      return;
+    }
 
-      try {
-        // TODO: API call to verify token
-        // const response = await fetch(`/api/auth/verify-reset-token/${token}`);
-        // const data = await response.json();
+    try {
+      setIsVerifying(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // For now, assume token is valid
+      // Aapka actual API call axios ke saath
+      // Note: Agar backend base URL alag hai toh pura URL dalein
+      const response = await axios.get(`https://silverscisor-backend.vercel.app/api/v1/auth/verify-reset-token/${token}`);
+
+      if (response.data.success || response.status === 200) {
         setIsValidToken(true);
-      } catch (error) {
-        setIsValidToken(false);
-      } finally {
-        setIsVerifying(false);
       }
-    };
+    } catch (error) {
+      console.error("Token verification error:", error);
+      setIsValidToken(false);
+      
+      // User ko inform karne ke liye alert
+      Swal.fire({
+        icon: 'error',
+        title: 'Expired Link',
+        text: error.response?.data?.message || 'This reset link is no longer valid.',
+        confirmButtonColor: '#f43f5e'
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
-    verifyToken();
-  }, [token]);
+  verifyToken();
+}, [token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,45 +96,52 @@ const ResetPassword = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    try {
-      // TODO: API call to reset password
-      // await fetch('/api/auth/reset-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ token, newPassword: formData.newPassword })
-      // });
+  try {
+    // 👇 Actual API call using Axios
+    // Token URL params se mil raha hai aur password formData se
+    const response = await axios.post('https://silverscisor-backend.vercel.app/api/v1/auth/reset-password', {
+      token: token,
+      newPassword: formData.newPassword
+    });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Success
+    // Check if response is successful
+    if (response.status === 200 || response.data.success) {
+      // Success Alert
       Swal.fire({
         icon: 'success',
         title: 'Password Reset Successful!',
         text: 'Your password has been changed. Redirecting to login...',
         confirmButtonColor: '#f43f5e',
-        timer: 2000
+        timer: 2000,
+        showConfirmButton: false // Timer ke saath automatic redirect better hai
       }).then(() => {
-        navigate('/auth');
+        navigate('/auth'); // Ya phir aapka login path
       });
-
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to reset password. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+  } catch (error) {
+    console.error("Reset password error:", error);
+    
+    // Backend se aane wala error message dikhane ke liye
+    const errorMessage = error.response?.data?.message || 'Failed to reset password. Please try again.';
+    
+    Swal.fire({
+      icon: 'error',
+      title: 'Submission Failed',
+      text: errorMessage,
+      confirmButtonColor: '#f43f5e'
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Verifying token
   if (isVerifying) {
