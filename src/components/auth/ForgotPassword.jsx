@@ -32,7 +32,7 @@ const ForgotPassword = ({ onBackToLogin }) => {
 
    try {
     console.log("email",email)
-  const response = await axios.post('https://silverscisor-frontend.vercel.app/api/v1/auth/forgot-password',  {email} );
+  const response = await axios.post('https://silverscisor-backend-1.onrender.com/api/v1/auth/forgot-password',  {email} );
   console.log(response)
   if (response.status === 200) {
     Swal.fire({
@@ -45,12 +45,13 @@ const ForgotPassword = ({ onBackToLogin }) => {
     });
   }
 } catch (error) {
-  setError(error.response?.data?.message || 'Something went wrong');
-  Swal.fire({
-    icon: 'error',
-    title: 'Error',
-    text: error.response?.data?.message || 'Email not found or server error',
-  });
+  console.log(error)
+  // setError(error.response?.data?.message || 'Something went wrong');
+  // Swal.fire({
+  //   icon: 'error',
+  //   title: 'Error',
+  //   text: error.response?.data?.message || 'Email not found or server error',
+  // });
 }
   };
 
