@@ -1,43 +1,28 @@
 import React from 'react';
 import { Search, MapPin, Sparkles } from 'lucide-react';
 import AnimatedClipSVG from '../../util/AnimatedClipSVG'; 
-import Ballpit from '../../util/Ballpit'; // Ballpit import kiya
 
 const CustomerHeroSection = () => (
-  <div className="relative bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-6 md:py-24 overflow-hidden min-h-[500px]">
+  <div className="relative bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-6 md:py-24 overflow-hidden">
     
-    {/* Layer 1: Ballpit (Background) - Pointer events none for mobile scroll fix */}
-    <div className="absolute inset-0 z-0 pointer-events-none">
-      <div style={{ position: 'relative', overflow: 'hidden', height: '100%', width: '100%' }}>
-        <Ballpit 
-          count={80}
-          gravity={0.01}
-          friction={0.9975}
-          wallBounce={0.95}
-          followCursor={false} // Mouse pointer ke saath balls move nahi hongi
-          colors={['#A855F7', '#3B82F6', '#EC4899']} // Salon Theme Colors
-        />
-      </div>
-    </div>
-
-    {/* Layer 2: Purani Image (Base Background) */}
+    {/* Layer 1: Purani Image (Base Background) */}
     <div 
-      className="absolute inset-0 opacity-20 dark:opacity-30 bg-cover bg-center bg-no-repeat z-10 pointer-events-none"
+      className="absolute inset-0 opacity-50 dark:opacity-50 bg-cover bg-center bg-no-repeat z-0"
       style={{
         backgroundImage: "url('/src/assets/images/herosvg.png')",
       }}
     ></div>
 
-    {/* Layer 3: New Animated SVG (Overlay) */}
-    <div className="absolute inset-0 z-20 opacity-50 pointer-events-none flex items-center justify-center">
+    {/* Layer 2: New Animated SVG (Overlay) */}
+    <div className="absolute inset-0 z-10 opacity-50 pointer-events-none flex items-center justify-center">
        <AnimatedClipSVG />
     </div>
 
-    {/* Layer 4: Decorative Blobs */}
-    <div className="absolute top-5 left-5 w-16 h-16 md:w-32 md:h-32 bg-purple-300 dark:bg-purple-900 rounded-full blur-3xl opacity-20 animate-pulse z-25"></div>
-    <div className="absolute bottom-5 right-5 w-20 h-20 md:w-40 md:h-40 bg-blue-300 dark:bg-blue-900 rounded-full blur-3xl opacity-20 animate-pulse z-25"></div>
+    {/* Layer 3: Decorative Blobs (Depth) */}
+    <div className="absolute top-5 left-5 w-16 h-16 md:w-32 md:h-32 bg-purple-300 dark:bg-purple-900 rounded-full blur-3xl opacity-20 animate-pulse z-20"></div>
+    <div className="absolute bottom-5 right-5 w-20 h-20 md:w-40 md:h-40 bg-blue-300 dark:bg-blue-900 rounded-full blur-3xl opacity-20 animate-pulse z-20"></div>
 
-    {/* Layer 5: Actual Content */}
+    {/* Layer 4: Actual Content */}
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-30">
       
       {/* Header Text Section */}
