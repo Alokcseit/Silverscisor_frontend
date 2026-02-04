@@ -4,29 +4,31 @@ import AnimatedClipSVG from '../../util/AnimatedClipSVG';
 import Ballpit from '../../util/Ballpit'; // Ballpit import kiya
 
 const CustomerHeroSection = () => (
-  <div className="relative bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-6 md:py-24 overflow-hidden min-h-[500px] md:min-h-[600px]">
+  <div className="relative bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-6 md:py-24 overflow-hidden min-h-[500px]">
     
-    {/* Layer 1: Ballpit (Deepest Background) */}
-    <div className="absolute inset-0 z-0">
-      <Ballpit 
-        count={60}
-        gravity={0.01}
-        friction={0.9975}
-        wallBounce={0.95}
-        followCursor={true}
-        colors={['#A855F7', '#3B82F6', '#EC4899']} // Salon theme colors
-      />
+    {/* Layer 1: Ballpit (Background) - Pointer events none for mobile scroll fix */}
+    <div className="absolute inset-0 z-0 pointer-events-none">
+      <div style={{ position: 'relative', overflow: 'hidden', height: '100%', width: '100%' }}>
+        <Ballpit 
+          count={80}
+          gravity={0.01}
+          friction={0.9975}
+          wallBounce={0.95}
+          followCursor={false} // Mouse pointer ke saath balls move nahi hongi
+          colors={['#A855F7', '#3B82F6', '#EC4899']} // Salon Theme Colors
+        />
+      </div>
     </div>
 
     {/* Layer 2: Purani Image (Base Background) */}
     <div 
-      className="absolute inset-0 opacity-50 dark:opacity-50 bg-cover bg-center bg-no-repeat z-10 pointer-events-none"
+      className="absolute inset-0 opacity-20 dark:opacity-30 bg-cover bg-center bg-no-repeat z-10 pointer-events-none"
       style={{
         backgroundImage: "url('/src/assets/images/herosvg.png')",
       }}
     ></div>
 
-    {/* Layer 3: Animated SVG (Scissors & Tools Overlay) */}
+    {/* Layer 3: New Animated SVG (Overlay) */}
     <div className="absolute inset-0 z-20 opacity-50 pointer-events-none flex items-center justify-center">
        <AnimatedClipSVG />
     </div>
