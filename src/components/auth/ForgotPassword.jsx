@@ -7,7 +7,7 @@ import SalonMorphIcon from '../../util/SalonMorphIcon';
 import Swal from 'sweetalert2';
 import { useTheme } from '../../context/ThemeContext';
 import DecorativeSVG from '../../util/DecorativeSVG';
-import axios from 'axios';
+import api from '../services/app';
 
 const ForgotPassword = ({ onBackToLogin }) => {
   const { theme, toggleTheme } = useTheme();
@@ -30,9 +30,9 @@ const ForgotPassword = ({ onBackToLogin }) => {
 
     setIsLoading(true);
 
-   try {
-    console.log("email",email)
-  const response = await axios.post('https://silverscisor-backend-1.onrender.com/api/v1/auth/forgot-password',  {email} );
+  try {
+   console.log('email', email);
+   const response = await api.post('/api/auth/forgot-password', { email });
   console.log(response)
   if (response.status === 200) {
     Swal.fire({

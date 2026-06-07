@@ -1,6 +1,7 @@
 // src/components/salon/SalonHeader.jsx
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, LogOut, Settings, Menu, X, User, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -9,6 +10,7 @@ import AnimatedScissors from '../../util/AnimatedScissors';
 import AnimatedScissorsIcon from '../../util/AnimatedScissorsIcon';
 
 const SalonHeader = () => {
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { success } = useNotification();
@@ -19,6 +21,7 @@ const SalonHeader = () => {
     logout();
     success('Successfully logged out!');
     setShowMenu(false);
+    navigate('/auth');
   };
 
   return (

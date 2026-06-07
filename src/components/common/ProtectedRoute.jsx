@@ -1,13 +1,18 @@
 // src/components/common/ProtectedRoute.jsx
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import useApi from '../../hooks/useApi';
 
-const ProtectedRoute = ({ children, requiredUserType }) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
+const ProtectedRoute = ({ children, requiredUserType, validateEndpoint, redirectTo }) => {
+  const { isAuthenticated, user, isLoading, logout } = useAuth();
+  const [invalidSession, setInvalidSession] = useState(false);
 
-  if (isLoading) {
+  const { data: validateData, error: validateError, loading: validateLoading, status: validateStatus } =
+    useApi({ url: validateEndpoint, method: 'GET', auto: !!validateEndpoint && isAuthenticated, auth: true, dependencies: [isAuthenticated] });
+
+  if (isLoading || validateLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
         <div className="text-center">
@@ -19,7 +24,23 @@ const ProtectedRoute = ({ children, requiredUserType }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={redirectTo || '/auth'} replace />;
+  }
+
+  // If a validation endpoint was provided and returned an error/status indicating an invalid session,
+  // force logout and redirect to auth.
+  useEffect(() => {
+    if (!validateEndpoint) return;
+    if (validateError || validateStatus === 401) {
+      setInvalidSession(true);
+      try {
+        logout();
+      } catch (e) {}
+    }
+  }, [validateError, validateStatus, validateEndpoint, logout]);
+
+  if (invalidSession) {
+    return <Navigate to={redirectTo || '/auth'} replace />;
   }
 
   if (requiredUserType && user?.userType !== requiredUserType) {

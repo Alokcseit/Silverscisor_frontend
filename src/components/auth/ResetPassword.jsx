@@ -8,7 +8,7 @@ import SalonMorphIcon from '../../util/SalonMorphIcon';
 import Swal from 'sweetalert2';
 import { useTheme } from '../../context/ThemeContext';
 import DecorativeSVG from '../../util/DecorativeSVG';
-import axios from 'axios';
+import api from '../services/app';
 
 const ResetPassword = () => {
   const { theme, toggleTheme } = useTheme();
@@ -39,9 +39,8 @@ const ResetPassword = () => {
     try {
       setIsVerifying(true);
 
-      // Aapka actual API call axios ke saath
-      // Note: Agar backend base URL alag hai toh pura URL dalein
-      const response = await axios.get(`https://silverscisor-backend.vercel.app/api/v1/auth/verify-reset-token/${token}`);
+      // Verify reset token via shared axios instance
+      const response = await api.get(`/api/auth/verify-reset-token/${token}`);
 
       if (response.data.success || response.status === 200) {
         setIsValidToken(true);
@@ -104,9 +103,8 @@ const ResetPassword = () => {
   setIsLoading(true);
 
   try {
-    // 👇 Actual API call using Axios
-    // Token URL params se mil raha hai aur password formData se
-    const response = await axios.post('https://silverscisor-backend.vercel.app/api/v1/auth/reset-password', {
+    // Reset password via shared axios instance
+    const response = await api.post('/api/auth/reset-password', {
       token: token,
       newPassword: formData.newPassword
     });

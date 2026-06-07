@@ -47,11 +47,14 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('silverscissor_user');
-    localStorage.removeItem('silverscissor_token');
-  };
+  setUser(null);
+  setIsAuthenticated(false);
+
+  localStorage.removeItem("silverscissor_user");
+  localStorage.removeItem("silverscissor_token");
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("refreshToken");
+};
 
   // Update user profile
   const updateUser = (updatedData) => {

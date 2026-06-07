@@ -1,6 +1,7 @@
 // src/components/customer/CustomerHeader.jsx
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, User, LogOut, Settings, Menu, X, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useNotification } from '../../context/NotificationContext.jsx';
@@ -10,6 +11,7 @@ import { useTheme } from '../../context/ThemeContext.jsx';
 import CustomerProfileModal from './CustomerProfileModal.jsx';
 
 const CustomerHeader = () => {
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const { success } = useNotification();
@@ -20,7 +22,8 @@ const CustomerHeader = () => {
   const handleLogout = () => {
     logout();
     success('Successfully logged out!');
-    setShowMenu(false); 
+    setShowMenu(false);
+    navigate('/auth');
   };
 
   const openProfileModal = () => {

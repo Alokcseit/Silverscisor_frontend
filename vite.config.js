@@ -6,4 +6,17 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   darkMode: 'class',
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api/auth': {
+        target: 'https://silverscisormasterbackend.onrender.com',
+        changeOrigin: true
+      },
+      // '/api/salon': {
+      //   target: 'http://localhost:5002',
+      //   changeOrigin: true
+      // }
+    }
+  }
 })

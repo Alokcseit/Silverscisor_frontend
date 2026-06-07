@@ -11,7 +11,7 @@ import Swal from 'sweetalert2';
 
 const Login = ({ onSwitchToSignup, onSwitchToForgotPassword}) => {
     const { theme, toggleTheme } = useTheme();
-  const { login } = useAuth(); // 👈 AuthContext
+  const { login } = useAuth(); 
   const [loginMethod, setLoginMethod] = useState('email');
   const [formData, setFormData] = useState({
     email: '',
@@ -63,16 +63,18 @@ const Login = ({ onSwitchToSignup, onSwitchToForgotPassword}) => {
 
   try {
     // 1️⃣ Call the API
-    const data = await loginAPI(formData);
-    console.log("data",data)
-    const token = data?.data.token; 
-    const user = data?.data.user || {}; 
+    const auth = await loginAPI(formData); // returns { accessToken, refreshToken, user }
+    console.log(auth)
+    console.log('auth', auth);
+    const token = auth?.accessToken || auth?.token;
+    const user = auth?.user || {};
 
     // 3️⃣ Save token securely (Context function provided in your snippet)
     // You might also want to save it to sessionStorage here if your 'login' function doesn't do it
-    localStorage.setItem("authToken", token); 
-    
-    login(user, token); 
+    localStorage.setItem('authToken', token);
+    if (auth?.refreshToken) localStorage.setItem('refreshToken', auth.refreshToken);
+
+    login(user, token);
 
     // 4️⃣ Optional: Success Alert
     Swal.fire({
