@@ -6,7 +6,7 @@ export const signupAPI = async (userData) => {
   delete userData.confirmPassword;
   try {
     // URL check kar lena: /api/Signup hai ya /api/Register
-    const response = await api.post('/api/users', userData);
+    const response = await api.post('/api/auth/signup', userData);
 
     console.log('✅ Signup successful:', response.data);
     return response.data;

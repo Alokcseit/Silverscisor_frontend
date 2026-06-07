@@ -40,7 +40,7 @@ const ResetPassword = () => {
       setIsVerifying(true);
 
       // Verify reset token via shared axios instance
-      const response = await api.get(`/api/auth/verify-reset-token/${token}`);
+      const response = await api.get(`/api/auth/refresh-token/${token}`);
 
       if (response.data.success || response.status === 200) {
         setIsValidToken(true);
