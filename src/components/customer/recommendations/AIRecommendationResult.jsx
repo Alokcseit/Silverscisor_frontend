@@ -19,56 +19,55 @@ const CategoryTab = ({ label, active, onClick, count }) => (
 const ServiceCard = ({ item, onSelect, type }) => (
   <div
     onClick={() => onSelect(item, type)}
-    className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group"
+    className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group"
   >
-    <div className="flex items-start justify-between mb-2">
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <h4 className="font-bold text-gray-800 dark:text-gray-100 group-hover:text-rose-500 transition">
-            {item.name}
-          </h4>
-          {/* Tags */}
-          {item.tags?.map(tag => (
-            <span
-              key={tag}
-              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                tag === 'Best Match'
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                  : tag === 'Trending'
-                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                  : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-              }`}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">{item.description}</p>
-      </div>
-
-      {/* Color swatch for hair color */}
-      {item.colorCode && (
-        <div
-          className="w-8 h-8 rounded-full border-2 border-gray-200 dark:border-gray-600 flex-shrink-0 ml-2"
-          style={{ backgroundColor: item.colorCode }}
+    <div className="relative h-44 overflow-hidden bg-gray-100 dark:bg-gray-900">
+      {item.image ? (
+        <img
+          src={item.image}
+          alt={item.name}
+          className="w-full h-full object-cover"
         />
+      ) : (
+        <div className="flex items-center justify-center h-full text-sm text-gray-500 dark:text-gray-400">
+          No image available
+        </div>
       )}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+        <h4 className="text-sm font-semibold text-white truncate">{item.name}</h4>
+      </div>
     </div>
-
-    <div className="flex items-center justify-between mt-3">
-      <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-        <div className="flex items-center gap-1">
+    <div className="p-4">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        {item.tags?.map(tag => (
+          <span
+            key={tag}
+            className={`text-[10px] px-2 py-1 rounded-full font-medium ${
+              tag === 'Best Match'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                : tag === 'Trending'
+                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+            }`}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{item.description}</p>
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-2">
           <Clock className="w-3 h-3" />
           {item.duration}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <TrendingUp className="w-3 h-3 text-green-500" />
-          <span className="text-green-600 dark:text-green-400 font-medium">{item.confidence}% match</span>
+          <span className="text-green-600 dark:text-green-400 font-medium">{item.confidence}%</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="mt-4 flex items-center justify-between">
         <span className="font-bold text-rose-500 dark:text-rose-400">₹{item.price}</span>
-        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
+        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-500 transition-all" />
       </div>
     </div>
   </div>

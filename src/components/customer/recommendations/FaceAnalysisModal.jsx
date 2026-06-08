@@ -116,7 +116,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               description: 'Perfect for oval face shape',
               price: 250,
               duration: '30 min',
-              tags: ['Trending', 'Best Match']
+              tags: ['Trending', 'Best Match'],
+              image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80'
             },
             {
               id: 2,
@@ -125,7 +126,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               description: 'Modern and stylish look',
               price: 200,
               duration: '25 min',
-              tags: ['Popular']
+              tags: ['Popular'],
+              image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80'
             },
             {
               id: 3,
@@ -134,7 +136,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               description: 'Classic professional style',
               price: 180,
               duration: '20 min',
-              tags: ['Classic']
+              tags: ['Classic'],
+              image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80'
             }
           ],
           beardStyles: [
@@ -145,7 +148,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               description: 'Suits your face shape perfectly',
               price: 100,
               duration: '15 min',
-              tags: ['Best Match']
+              tags: ['Best Match'],
+              image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80'
             },
             {
               id: 2,
@@ -154,7 +158,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               description: 'Elegant and sophisticated',
               price: 120,
               duration: '20 min',
-              tags: ['Trending']
+              tags: ['Trending'],
+              image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80'
             }
           ],
           hairColors: [
@@ -166,7 +171,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               colorCode: '#3B1F0A',
               price: 800,
               duration: '60 min',
-              tags: ['Best Match']
+              tags: ['Best Match'],
+              image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=600&q=80'
             },
             {
               id: 2,
@@ -176,7 +182,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               colorCode: '#1A1A1A',
               price: 700,
               duration: '50 min',
-              tags: ['Classic']
+              tags: ['Classic'],
+              image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80'
             }
           ]
         }
