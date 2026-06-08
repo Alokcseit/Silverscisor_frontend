@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, MapPin, Sparkles } from 'lucide-react';
 import AnimatedClipSVG from '../../util/AnimatedClipSVG'; 
+import TrendingNearYou from './recommendations/TrendingNearYou';
 
 const CustomerHeroSection = () => (
   <div className="relative bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-6 md:py-24 overflow-hidden">
@@ -97,6 +98,12 @@ const CustomerHeroSection = () => (
           </div>
         </div>
       </div>
+
+      <TrendingNearYou onServiceSelect={(service) => {
+      // Service select hone pe booking form open karo
+      console.log('Trending service selected:', service);
+       }} />
+
     </div>
   </div>
 );
