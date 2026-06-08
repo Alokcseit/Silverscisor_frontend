@@ -96,13 +96,13 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
 
         {/* Header */}
         <div className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-slate-700 dark:to-slate-600 p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               {/* Captured Photo */}
               {capturedImage && (
                 <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-white shadow-lg flex-shrink-0">
@@ -110,7 +110,7 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
                 </div>
               )}
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 mb-1">
                   <Sparkles className="w-5 h-5 text-white" />
                   <h3 className="font-bold text-white text-lg">AI Analysis Complete!</h3>
                 </div>
@@ -130,7 +130,7 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
 
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition text-white"
+              className="self-start sm:self-auto p-2 hover:bg-white/20 rounded-lg transition text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -153,7 +153,7 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
         </div>
 
         {/* Service Cards */}
-        <div className="px-5 pb-5 space-y-3">
+        <div className="px-5 pb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {activeData.map(item => (
             <ServiceCard
               key={item.id}
