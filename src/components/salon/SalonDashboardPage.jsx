@@ -9,10 +9,14 @@ import SalonBottomNav from '../salon/SalonBottomNav';
 import { Users, Scissors, DollarSign, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import QueueManager from './salonQueue/QueueManager';
+import PricingPage from '../subscription/PricingPage';
+import TokenWallet from '../subscription/TokenWallet';
+import TokenRechargeModal from '../subscription/TokenRechargeModal';
 
 const SalonDashboardPage = () => {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [bookings, setBookings] = useState([
     {
       id: 1,
@@ -135,10 +139,21 @@ const SalonDashboardPage = () => {
         {currentView === 'queue' && (
           <QueueManager />
         )}
+        {currentView === 'subscription' && (
+         <PricingPage />
+        )}
+
+        {currentView === 'wallet' && (
+       <TokenWallet onRecharge={() => setShowRechargeModal(true)} />
+        )}
       </div>
 
       {/* Bottom Navigation */}
       <SalonBottomNav currentView={currentView} setCurrentView={setCurrentView} />
+      <TokenRechargeModal
+       isOpen={showRechargeModal}
+       onClose={() => setShowRechargeModal(false)}
+      />
     </div>
   );
 };

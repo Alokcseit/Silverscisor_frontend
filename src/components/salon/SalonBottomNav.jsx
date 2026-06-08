@@ -1,7 +1,7 @@
 // src/components/salon/SalonBottomNav.jsx
 
 import React from 'react';
-import { Home, Calendar, Scissors, Users, DollarSign, Settings } from 'lucide-react';
+import { Home, Calendar, Scissors, Users, DollarSign, Settings, Crown, Zap } from 'lucide-react';
 
 const SalonBottomNav = ({ currentView, setCurrentView }) => {
   
@@ -13,6 +13,8 @@ const SalonBottomNav = ({ currentView, setCurrentView }) => {
     { id: 'earnings', label: 'Earnings', icon: DollarSign },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'queue', label: 'Queue', icon: Users, badge: 5 },
+    { id: 'subscription', label: 'Plans', icon: Crown },
+    { id: 'wallet', label: 'Tokens', icon: Zap, badge: null },
   ];
 
   return (
