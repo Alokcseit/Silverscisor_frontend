@@ -1,6 +1,6 @@
 // src/components/customer/recommendations/FaceAnalysisModal.jsx
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Camera, Upload, RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
 
 const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
@@ -14,31 +14,38 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
   const fileInputRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Camera start karo
-  const startCamera = async () => {
-    setError('');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 640, height: 480 }
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-        setCameraActive(true);
+  // Camera ko useEffect me start karo - tab jab cameraActive true ho
+  useEffect(() => {
+    if (!cameraActive) return;
+
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 640, height: 480 }
+        });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        setError('Camera access denied. Please allow camera permission or upload a photo.');
+        setCameraActive(false);
       }
-    } catch (err) {
-      setError('Camera access denied. Please allow camera permission or upload a photo.');
-    }
-  };
+    };
+
+    startCamera();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [cameraActive]);
 
   // Camera band karo
   const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-      setCameraActive(false);
-    }
+    setCameraActive(false);
   }, []);
 
   // Photo capture karo
@@ -203,6 +210,7 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     setCapturedImage(null);
     setStep('capture');
     setError('');
+    setCameraActive(true);
   };
 
   // Close
@@ -225,26 +233,26 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md mx-2 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-slate-700 dark:to-slate-600 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sparkles className="w-6 h-6 text-white" />
-            <div>
-              <h2 className="text-lg font-bold text-white">AI Style Analysis</h2>
-              <p className="text-xs text-white/80">Get personalized recommendations</p>
+        <div className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-slate-700 dark:to-slate-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-white truncate">AI Style Analysis</h2>
+              <p className="text-[10px] sm:text-xs text-white/80 truncate">Get personalized recommendations</p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-white/20 rounded-lg transition text-white"
+            className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition text-white flex-shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
 
           {/* Error */}
           {error && (
@@ -263,7 +271,7 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
 
               {/* Camera Preview */}
               {cameraActive ? (
-                <div className="relative rounded-xl overflow-hidden bg-black aspect-square">
+                <div className="relative rounded-xl overflow-hidden bg-black aspect-square max-h-[50vh]">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -274,16 +282,16 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
                   />
                   {/* Face guide overlay */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-48 h-60 border-2 border-white/60 rounded-full border-dashed"></div>
+                    <div className="w-32 sm:w-48 h-40 sm:h-60 border-2 border-white/60 rounded-full border-dashed"></div>
                   </div>
-                  <p className="absolute bottom-3 left-0 right-0 text-center text-white text-xs">
+                  <p className="absolute bottom-3 left-0 right-0 text-center text-white text-[10px] sm:text-xs">
                     Position your face in the circle
                   </p>
                 </div>
               ) : (
                 <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl flex flex-col items-center justify-center gap-3">
-                  <Camera className="w-16 h-16 text-gray-400 dark:text-gray-500" />
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">Camera not started</p>
+                  <Camera className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-500" />
+                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Camera not started</p>
                 </div>
               )}
 
@@ -294,7 +302,7 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
               <div className="grid grid-cols-2 gap-3">
                 {!cameraActive ? (
                   <button
-                    onClick={startCamera}
+                    onClick={() => setCameraActive(true)}
                     className="flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-amber-500 text-white py-3 rounded-xl font-semibold hover:from-rose-600 hover:to-amber-600 transition col-span-2"
                   >
                     <Camera className="w-5 h-5" />

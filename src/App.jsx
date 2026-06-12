@@ -13,10 +13,15 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ResetPassword from './components/auth/ResetPassword';
 import {QueueProvider} from './context/QueueContext'
+import { useSelector } from 'react-redux';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 function AppRoutes() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
-  console.log(isAuthenticated,"dagkfhd",user)
+
+  // Redux state
+  const adminAuth = useSelector((state) => state.admin);
 
   if (isLoading) {
     return (
@@ -28,12 +33,40 @@ function AppRoutes() {
 
   return (
     <Routes>
+
+      {/* Admin Login */}
+      <Route
+        path="/admin/login"
+        element={
+          adminAuth?.isAuthenticated ? (
+            <Navigate to="/admin" replace />
+          ) : (
+            <AdminLoginPage />
+          )
+        }
+      />
+
+      {/* Admin Dashboard */}
+      <Route
+        path="/admin"
+        element={
+          adminAuth?.isAuthenticated ? (
+            <AdminDashboardPage />
+          ) : (
+            <Navigate to="/admin/login" replace />
+          )
+        }
+      />
+
       {/* Auth Route */}
       <Route
         path="/auth"
         element={
           isAuthenticated ? (
-            <Navigate to={user?.userType === 'customer' ? '/customer' : '/salon'} replace />
+            <Navigate
+              to={user?.userType === 'customer' ? '/customer' : '/salon'}
+              replace
+            />
           ) : (
             <AuthPage />
           )
@@ -41,6 +74,7 @@ function AppRoutes() {
       />
 
       <Route path="/reset-password" element={<ResetPassword />} />
+
       {/* Customer Routes */}
       <Route
         path="/customer"
@@ -65,15 +99,19 @@ function AppRoutes() {
       <Route
         path="/"
         element={
-          isAuthenticated ? (
-            <Navigate to={user?.userType === 'customer' ? '/customer' : '/salon'} replace />
+          adminAuth?.isAuthenticated ? (
+            <Navigate to="/admin" replace />
+          ) : isAuthenticated ? (
+            <Navigate
+              to={user?.userType === 'customer' ? '/customer' : '/salon'}
+              replace
+            />
           ) : (
             <Navigate to="/auth" replace />
           )
         }
       />
 
-      {/* 404 Redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
