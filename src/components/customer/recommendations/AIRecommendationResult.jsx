@@ -1,7 +1,7 @@
 // src/components/customer/recommendations/AIRecommendationResult.jsx
 
 import React, { useState } from 'react';
-import { Sparkles, TrendingUp, Clock, CheckCircle, X, ChevronRight } from 'lucide-react';
+import { Sparkles, TrendingUp, Clock, X } from 'lucide-react';
 
 const CategoryTab = ({ label, active, onClick, count }) => (
   <button
@@ -16,28 +16,35 @@ const CategoryTab = ({ label, active, onClick, count }) => (
   </button>
 );
 
-const ServiceCard = ({ item, onSelect, type }) => (
-  <div
-    onClick={() => onSelect(item, type)}
-    className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group"
-  >
-    <div className="relative h-36 sm:h-44 overflow-hidden bg-gray-100 dark:bg-gray-900">
+const ServiceCard = ({ item, onSelect, type, isAIGenerated }) => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group flex flex-col">
+    <div
+      onClick={() => onSelect(item, type)}
+      className="relative h-36 sm:h-44 overflow-hidden bg-gray-100 dark:bg-gray-900 cursor-pointer"
+    >
       {item.image ? (
-        <img
-          src={item.image}
-          alt={item.name}
-          className="w-full h-full object-cover"
-        />
+        <>
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-full h-full object-cover"
+          />
+          {isAIGenerated && (
+            <div className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> AI
+            </div>
+          )}
+        </>
       ) : (
         <div className="flex items-center justify-center h-full text-sm text-gray-500 dark:text-gray-400">
-          No image available
+          Loading...
         </div>
       )}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 sm:p-3">
         <h4 className="text-xs sm:text-sm font-semibold text-white truncate">{item.name}</h4>
       </div>
     </div>
-    <div className="p-3 sm:p-4">
+    <div className="p-3 sm:p-4 flex flex-col flex-1">
       <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
         {item.tags?.map(tag => (
           <span
@@ -54,7 +61,7 @@ const ServiceCard = ({ item, onSelect, type }) => (
           </span>
         ))}
       </div>
-      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 sm:mb-4">{item.description}</p>
+      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 flex-1">{item.description}</p>
       <div className="flex items-center justify-between text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-1 sm:gap-2">
           <Clock className="w-3 h-3" />
@@ -65,15 +72,21 @@ const ServiceCard = ({ item, onSelect, type }) => (
           <span className="text-green-600 dark:text-green-400 font-medium">{item.confidence}%</span>
         </div>
       </div>
-      <div className="mt-3 sm:mt-4 flex items-center justify-between">
+      <div className="mt-3 sm:mt-4 flex items-center justify-between gap-2">
         <span className="font-bold text-rose-500 dark:text-rose-400 text-sm sm:text-base">₹{item.price}</span>
-        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-500 transition-all" />
+        <button
+          onClick={() => onSelect(item, type)}
+          className="flex items-center gap-1.5 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:from-rose-600 hover:to-amber-600 transition shadow-sm"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Book at Salon
+        </button>
       </div>
     </div>
   </div>
 );
 
-const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClose }) => {
+const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClose, generating, onGenerateAIPhotos }) => {
   const [activeTab, setActiveTab] = useState('haircuts');
 
   if (!result) return null;
@@ -93,6 +106,8 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
       aiRecommended: true
     });
   };
+
+  const hasAIImage = (item) => item.image && item.image.startsWith('http') && !item.image.includes('unsplash');
 
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
@@ -127,12 +142,27 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="self-end sm:self-auto p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition text-white"
-            >
-              <X className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {onGenerateAIPhotos && (
+                <button
+                  onClick={onGenerateAIPhotos}
+                  disabled={generating}
+                  className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                >
+                  {generating ? (
+                    <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating AI...</>
+                  ) : (
+                    <><Sparkles className="w-3.5 h-3.5" /> AI Photos</>
+                  )}
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition text-white flex-shrink-0"
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -159,6 +189,7 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
               item={item}
               onSelect={handleSelect}
               type={activeTab}
+              isAIGenerated={hasAIImage(item)}
             />
           ))}
         </div>

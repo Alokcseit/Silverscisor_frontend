@@ -1,20 +1,25 @@
 // src/components/customer/recommendations/FaceAnalysisModal.jsx
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { X, Camera, Upload, RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Camera, Upload, RefreshCw, Sparkles, AlertCircle, IndianRupee } from 'lucide-react';
+
+const ANALYSIS_PRICE = 10;
 
 const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
-  const [step, setStep] = useState('capture'); // 'capture', 'preview', 'analyzing', 'result'
+  const [step, setStep] = useState('payment');
   const [capturedImage, setCapturedImage] = useState(null);
   const [error, setError] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [paid, setPaid] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Camera ko useEffect me start karo - tab jab cameraActive true ho
+  const API_URL = import.meta.env.VITE_RECOMMENDATION_API_URL || 'http://localhost:5004/api';
+
   useEffect(() => {
     if (!cameraActive) return;
 
@@ -43,12 +48,78 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     };
   }, [cameraActive]);
 
-  // Camera band karo
   const stopCamera = useCallback(() => {
     setCameraActive(false);
   }, []);
 
-  // Photo capture karo
+  const handlePayment = async () => {
+    setPaying(true);
+    setError('');
+
+    try {
+      const orderRes = await fetch(`${API_URL}/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!orderRes.ok) throw new Error('Order creation failed');
+      const orderData = await orderRes.json();
+      if (!orderData.success) throw new Error('Order creation failed');
+
+      // Razorpay keys hain to real checkout, nahi to mock
+      if (orderData.keyId && orderData.keyId !== 'rzp_test_placeholder') {
+        await loadRazorpayScript();
+        const razorpay = new window.Razorpay({
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          order_id: orderData.orderId,
+          name: 'Silverscisor',
+          description: 'AI Face Analysis',
+          handler: async function (response) {
+            await verifyPayment(response);
+          },
+          prefill: { contact: '', email: '' },
+          theme: { color: '#f43f5e' },
+          modal: { ondismiss: () => setPaying(false) },
+        });
+        razorpay.open();
+      } else {
+        // Mock payment for testing
+        await new Promise(r => setTimeout(r, 1000));
+        setPaid(true);
+        setStep('capture');
+        setPaying(false);
+      }
+    } catch (err) {
+      setError('Payment failed. Please try again.');
+      setPaying(false);
+    }
+  };
+
+  const verifyPayment = async (razorpayResponse) => {
+    try {
+      const verifyRes = await fetch(`${API_URL}/verify-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpayOrderId: razorpayResponse.razorpay_order_id,
+          razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+          razorpaySignature: razorpayResponse.razorpay_signature,
+        }),
+      });
+      const verifyData = await verifyRes.json();
+      if (verifyData.success) {
+        setPaid(true);
+        setStep('capture');
+      } else {
+        setError('Payment verification failed');
+      }
+    } catch {
+      setError('Payment verification failed');
+    }
+    setPaying(false);
+  };
+
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
@@ -58,7 +129,6 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     canvas.height = video.videoHeight;
 
     const ctx = canvas.getContext('2d');
-    // Mirror effect (selfie mode)
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0);
@@ -69,7 +139,6 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     setStep('preview');
   };
 
-  // File upload karo
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -92,111 +161,25 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     reader.readAsDataURL(file);
   };
 
-  // Analyze karo
   const analyzePhoto = async () => {
     setStep('analyzing');
     setError('');
 
     try {
-      // TODO: Python API call yahan hoga
-      // const response = await fetch('/api/analyze-face', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ image: capturedImage })
-      // });
-      // const data = await response.json();
+      const response = await fetch(`${API_URL}/analyze-face`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: capturedImage })
+      });
 
-      // Simulate API call (Python service ke liye)
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-      // Mock result (Python service ready hone pe replace karo)
-      const mockResult = {
-        faceShape: 'Oval',
-        skinTone: 'Medium',
-        currentHairLength: 'Short',
-        recommendations: {
-          haircuts: [
-            {
-              id: 1,
-              name: 'Classic Undercut',
-              confidence: 95,
-              description: 'Perfect for oval face shape',
-              price: 250,
-              duration: '30 min',
-              tags: ['Trending', 'Best Match'],
-              image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-              id: 2,
-              name: 'Textured Crop',
-              confidence: 88,
-              description: 'Modern and stylish look',
-              price: 200,
-              duration: '25 min',
-              tags: ['Popular'],
-              image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-              id: 3,
-              name: 'Side Part',
-              confidence: 82,
-              description: 'Classic professional style',
-              price: 180,
-              duration: '20 min',
-              tags: ['Classic'],
-              image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80'
-            }
-          ],
-          beardStyles: [
-            {
-              id: 1,
-              name: 'Short Stubble',
-              confidence: 92,
-              description: 'Suits your face shape perfectly',
-              price: 100,
-              duration: '15 min',
-              tags: ['Best Match'],
-              image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-              id: 2,
-              name: 'French Beard',
-              confidence: 85,
-              description: 'Elegant and sophisticated',
-              price: 120,
-              duration: '20 min',
-              tags: ['Trending'],
-              image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80'
-            }
-          ],
-          hairColors: [
-            {
-              id: 1,
-              name: 'Dark Brown',
-              confidence: 90,
-              description: 'Complements your skin tone',
-              colorCode: '#3B1F0A',
-              price: 800,
-              duration: '60 min',
-              tags: ['Best Match'],
-              image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=600&q=80'
-            },
-            {
-              id: 2,
-              name: 'Natural Black',
-              confidence: 85,
-              description: 'Classic and timeless',
-              colorCode: '#1A1A1A',
-              price: 700,
-              duration: '50 min',
-              tags: ['Classic'],
-              image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80'
-            }
-          ]
-        }
-      };
+      const json = await response.json();
+      const result = json.data;
 
-      onAnalysisComplete(mockResult, capturedImage);
+      onAnalysisComplete(result, capturedImage);
       handleClose();
 
     } catch (err) {
@@ -205,7 +188,6 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     }
   };
 
-  // Reset
   const handleRetake = () => {
     setCapturedImage(null);
     setStep('capture');
@@ -213,28 +195,35 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
     setCameraActive(true);
   };
 
-  // Close
   const handleClose = () => {
     stopCamera();
     setCapturedImage(null);
-    setStep('capture');
+    setStep('payment');
     setError('');
+    setPaid(false);
     onClose();
+  };
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) return resolve();
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = resolve;
+      document.body.appendChild(script);
+    });
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={handleClose}
       />
 
-      {/* Modal */}
       <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md mx-2 overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-slate-700 dark:to-slate-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
@@ -251,10 +240,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-4 sm:p-6">
 
-          {/* Error */}
           {error && (
             <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4 text-sm">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -262,14 +249,70 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
             </div>
           )}
 
+          {/* STEP 0: Payment */}
+          {step === 'payment' && (
+            <div className="space-y-6 py-4">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-r from-rose-500 to-amber-500 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Unlock AI-powered style recommendations
+                </p>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">AI Face Analysis</span>
+                  <span className="font-semibold text-gray-800 dark:text-gray-100">
+                    <IndianRupee className="w-3.5 h-3.5 inline" />{ANALYSIS_PRICE}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Personalized Recommendations</span>
+                  <span className="text-green-600 font-medium">Free</span>
+                </div>
+                <hr className="border-gray-200 dark:border-gray-600" />
+                <div className="flex items-center justify-between font-bold">
+                  <span className="text-gray-800 dark:text-gray-100">Total</span>
+                  <span className="text-gray-800 dark:text-gray-100">
+                    <IndianRupee className="w-3.5 h-3.5 inline" />{ANALYSIS_PRICE}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={handlePayment}
+                disabled={paying}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-amber-500 text-white py-3 rounded-xl font-semibold hover:from-rose-600 hover:to-amber-600 transition disabled:opacity-60"
+              >
+                {paying ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <IndianRupee className="w-5 h-5" />
+                    Pay ₹{ANALYSIS_PRICE} & Analyze
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-gray-400">
+                Secure payment • Money-back if analysis fails
+              </p>
+            </div>
+          )}
+
           {/* STEP 1: Capture */}
           {step === 'capture' && (
             <div className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                Take a selfie or upload your photo for personalized style recommendations
+                {paid && <span className="text-green-600 font-medium block mb-1">✓ Payment successful!</span>}
+                Take a selfie or upload your photo
               </p>
 
-              {/* Camera Preview */}
               {cameraActive ? (
                 <div className="relative rounded-xl overflow-hidden bg-black aspect-square max-h-[50vh]">
                   <video
@@ -280,7 +323,6 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
                     className="w-full h-full object-cover"
                     style={{ transform: 'scaleX(-1)' }}
                   />
-                  {/* Face guide overlay */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-32 sm:w-48 h-40 sm:h-60 border-2 border-white/60 rounded-full border-dashed"></div>
                   </div>
@@ -295,10 +337,8 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
                 </div>
               )}
 
-              {/* Hidden Canvas */}
               <canvas ref={canvasRef} className="hidden" />
 
-              {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
                 {!cameraActive ? (
                   <button
@@ -371,7 +411,6 @@ const FaceAnalysisModal = ({ isOpen, onClose, onAnalysisComplete }) => {
           {/* STEP 3: Analyzing */}
           {step === 'analyzing' && (
             <div className="py-8 flex flex-col items-center gap-4">
-              {/* Animated analyzing */}
               <div className="relative w-24 h-24">
                 <div className="absolute inset-0 border-4 border-rose-200 dark:border-rose-900 rounded-full"></div>
                 <div className="absolute inset-0 border-4 border-t-rose-500 rounded-full animate-spin"></div>
