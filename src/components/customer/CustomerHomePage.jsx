@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import CustomerHeader from './CustomerHeader';
 import CustomerHeroSection from './CustomerHeroSection';
+import SalonDetailView from './SalonDetailView';
 import ServiceSelection from './ServiceSelection';
 import BookingForm from './BookingForm';
 import ConfirmationModal from './ConfirmationModal';
@@ -21,6 +22,7 @@ const CustomerHomePage = ({ userData, onLogout }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [currentView, setCurrentView] = useState('home');
+  const [selectedSalon, setSelectedSalon] = useState(null);
 
   // AI Analysis states
   const [showFaceModal, setShowFaceModal] = useState(false);
@@ -37,28 +39,8 @@ const CustomerHomePage = ({ userData, onLogout }) => {
   // Track active service requests
   const [myRequests, setMyRequests] = useState([]);
 
-  const [userBookings, setUserBookings] = useState([
-    {
-      id: 1001,
-      customerName: userData?.name || 'राहुल कुमार',
-      customerPhone: userData?.phone || '+91 98765 43210',
-      service: { name: 'Haircut', duration: '30 मिनट', price: 200 },
-      time: '11:00 AM',
-      date: '2026-01-20',
-      status: 'completed'
-    },
-    {
-      id: 1002,
-      customerName: userData?.name || 'राहुल कुमार',
-      customerPhone: userData?.phone || '+91 98765 43210',
-      service: { name: 'Haircut + Beard', duration: '45 मिनट', price: 250 },
-      time: '02:00 PM',
-      date: '2026-01-25',
-      status: 'confirmed'
-    }
-  ]);
-
   const API_URL = import.meta.env.VITE_RECOMMENDATION_API_URL || 'http://localhost:5004/api';
+  const BOOKING_API = import.meta.env.VITE_SALON_API_URL || 'http://localhost:5002/api';
 
   // Poll for request status updates
   useEffect(() => {
@@ -145,19 +127,25 @@ const CustomerHomePage = ({ userData, onLogout }) => {
     setAiCapturedImage(null);
   };
 
+  const token = localStorage.getItem('silverscissor_token');
+
+  const fetchMyBookings = async () => {
+    try {
+      await fetch(`${BOOKING_API}/bookings/my`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {}
+  };
+
   // New booking
   const handleNewBooking = (booking) => {
-    const newBooking = {
-      ...booking,
-      id: Date.now(),
-      status: 'confirmed',
-      customerName: userData?.name,
-      customerPhone: userData?.phone
-    };
-    setUserBookings([...userBookings, newBooking]);
-    setBookingDetails(newBooking);
+    setBookingDetails(booking);
     setShowBookingForm(false);
     setShowConfirmation(true);
+  };
+
+  const handleNavigateHome = () => {
+    setCurrentView('home');
   };
 
   // Send service request to nearby salons
@@ -193,6 +181,25 @@ const CustomerHomePage = ({ userData, onLogout }) => {
     setSendingRequest(false);
   };
 
+  // Salon detail view
+  const handleViewSalon = (salon) => {
+    setSelectedSalon(salon);
+    setSelectedService(null);
+    setShowBookingForm(false);
+  };
+
+  const handleBookServiceFromSalon = (salon, service) => {
+    setSelectedSalon(salon);
+    setSelectedService(service);
+    setShowBookingForm(true);
+  };
+
+  const handleBackFromSalon = () => {
+    setSelectedSalon(null);
+    setSelectedService(null);
+    setShowBookingForm(false);
+  };
+
   const statusColor = (status) => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400';
@@ -222,10 +229,32 @@ const CustomerHomePage = ({ userData, onLogout }) => {
         onLogout={onLogout}
       />
 
-      {/* Home View */}
-      {currentView === 'home' && (
+      {/* Salon Detail View */}
+      {selectedSalon && (
         <>
-          <CustomerHeroSection />
+          <SalonDetailView
+            salon={selectedSalon}
+            userData={userData}
+            onBack={handleBackFromSalon}
+            onBookService={handleBookServiceFromSalon}
+          />
+          {showBookingForm && (
+            <BookingForm
+              selectedService={selectedService}
+              salon={selectedSalon}
+              userData={userData}
+              setShowConfirmation={setShowConfirmation}
+              setBookingDetails={handleNewBooking}
+              setShowBookingForm={setShowBookingForm}
+            />
+          )}
+        </>
+      )}
+
+      {/* Home View */}
+      {currentView === 'home' && !selectedSalon && (
+        <>
+          <CustomerHeroSection onViewSalon={handleViewSalon} />
 
           {/* Active Service Requests Banner */}
           {myRequests.filter(r => r.status !== 'cancelled').length > 0 && (
@@ -323,7 +352,7 @@ const CustomerHomePage = ({ userData, onLogout }) => {
 
       {/* Bookings History View */}
       {currentView === 'bookings' && (
-        <CustomerBookingHistory bookings={userBookings} />
+        <CustomerBookingHistory onNavigateHome={handleNavigateHome} />
       )}
 
       {/* Confirmation Modal */}

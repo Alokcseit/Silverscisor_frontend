@@ -1,13 +1,18 @@
 // src/components/salon/SalonHeader.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, LogOut, Settings, Menu, X, User, Sun, Moon } from 'lucide-react';
+import { Bell, LogOut, Settings, Menu, X, User, Sun, Moon, Check, X as XIcon, Clock, Calendar, Scissors } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 import AnimatedScissors from '../../util/AnimatedScissors';
 import AnimatedScissorsIcon from '../../util/AnimatedScissorsIcon';
+import SalonProfileModal from './SalonProfileModal';
+import SalonSettingsModal from './SalonSettingsModal';
+import axios from 'axios';
+
+const SALON_API = import.meta.env.VITE_SALON_API_URL;
 
 const SalonHeader = () => {
   const navigate = useNavigate();
@@ -16,12 +21,100 @@ const SalonHeader = () => {
   const { success } = useNotification();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notifRef = useRef(null);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('silverscissor_token');
+      const res = await axios.get(`${SALON_API}/notifications/salon`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        setNotifications(res.data.data);
+        setUnreadCount(res.data.unreadCount);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const markAsRead = async (id) => {
+    try {
+      const token = localStorage.getItem('silverscissor_token');
+      await axios.put(`${SALON_API}/notifications/${id}/read`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error('Mark read error:', err.message);
+    }
+  };
+
+  const markAllRead = async () => {
+    try {
+      const token = localStorage.getItem('silverscissor_token');
+      await axios.put(`${SALON_API}/notifications/salon/read-all`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Mark all read error:', err.message);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     success('Successfully logged out!');
     setShowMenu(false);
     navigate('/auth');
+  };
+
+  const getNotifIcon = (type) => {
+    switch (type) {
+      case 'booking_request': return <Calendar className="w-4 h-4 text-blue-500" />;
+      case 'booking_confirmed': return <Check className="w-4 h-4 text-green-500" />;
+      case 'booking_rejected': return <XIcon className="w-4 h-4 text-red-500" />;
+      case 'booking_cancelled': return <XIcon className="w-4 h-4 text-orange-500" />;
+      case 'booking_completed': return <Scissors className="w-4 h-4 text-purple-500" />;
+      case 'delay_alert': return <Clock className="w-4 h-4 text-yellow-500" />;
+      default: return <Bell className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const timeAgo = (date) => {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'अभी';
+    if (mins < 60) return `${mins} मिनट पहले`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} घंटे पहले`;
+    const days = Math.floor(hours / 24);
+    return `${days} दिन पहले`;
   };
 
   return (
@@ -61,10 +154,74 @@ const SalonHeader = () => {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 hover:bg-white/10 dark:hover:bg-white/5 rounded-lg transition">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                className="relative p-2 hover:bg-white/10 dark:hover:bg-white/5 rounded-lg transition"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-green-500 dark:border-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifDropdown && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-50 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white max-h-[70vh] flex flex-col">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                    <h3 className="font-bold">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllRead}
+                        className="text-xs text-green-600 dark:text-green-400 hover:underline"
+                      >
+                        सभी पढ़े हुए मार्क करें
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="overflow-y-auto flex-1">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-gray-400 dark:text-gray-500">
+                        <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">कोई नोटिफिकेशन नहीं</p>
+                      </div>
+                    ) : (
+                      notifications.map((notif) => (
+                        <div
+                          key={notif._id}
+                          className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer border-b border-gray-50 dark:border-gray-700/50 ${
+                            !notif.isRead ? 'bg-green-50/50 dark:bg-green-900/10' : ''
+                          }`}
+                          onClick={() => {
+                            if (!notif.isRead) markAsRead(notif._id);
+                          }}
+                        >
+                          <div className="mt-1 flex-shrink-0">
+                            {getNotifIcon(notif.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm ${!notif.isRead ? 'font-semibold' : ''}`}>
+                              {notif.title}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {notif.message}
+                            </p>
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                              {timeAgo(notif.createdAt)}
+                            </p>
+                          </div>
+                          {!notif.isRead && (
+                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Profile Dropdown - Desktop */}
             <div className="relative hidden md:block">
@@ -120,12 +277,18 @@ const SalonHeader = () => {
                     </div>
 
                     {/* Menu Items */}
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-3">
+                    <button
+                      onClick={() => { setShowProfileDropdown(false); setShowProfileModal(true); }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-3"
+                    >
                       <User className="w-5 h-5" />
                       <span>Salon Profile</span>
                     </button>
 
-                    <button className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-3">
+                    <button
+                      onClick={() => { setShowProfileDropdown(false); setShowSettingsModal(true); }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-3"
+                    >
                       <Settings className="w-5 h-5" />
                       <span>Settings</span>
                     </button>
@@ -171,12 +334,18 @@ const SalonHeader = () => {
               </div>
             </div>
 
-            <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition flex items-center gap-3">
+            <button
+              onClick={() => { setShowMenu(false); setShowProfileModal(true); }}
+              className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition flex items-center gap-3"
+            >
               <User className="w-5 h-5" />
               Salon Profile
             </button>
 
-            <button className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition flex items-center gap-3">
+            <button
+              onClick={() => { setShowMenu(false); setShowSettingsModal(true); }}
+              className="w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition flex items-center gap-3"
+            >
               <Settings className="w-5 h-5" />
               Settings
             </button>
@@ -191,6 +360,9 @@ const SalonHeader = () => {
           </div>
         )}
       </div>
+
+      <SalonProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
+      <SalonSettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
     </div>
   );
 };

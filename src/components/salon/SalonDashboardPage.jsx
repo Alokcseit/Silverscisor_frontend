@@ -6,9 +6,10 @@ import SalonStats from '../salon/SalonStats';
 import SalonBookingsList from '../salon/SalonBookingsList';
 import SalonBottomNav from '../salon/SalonBottomNav';
 
-import { Users, Scissors, DollarSign, Settings as SettingsIcon } from 'lucide-react';
+import { Users, DollarSign, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import QueueManager from './salonQueue/QueueManager';
+import SalonServiceManagement from './services/SalonServiceManagement';
 import PricingPage from '../subscription/PricingPage';
 import TokenWallet from '../subscription/TokenWallet';
 import TokenRechargeModal from '../subscription/TokenRechargeModal';
@@ -75,32 +76,18 @@ const SalonDashboardPage = () => {
         {currentView === 'dashboard' && (
           <>
             <SalonStats bookings={bookings} />
-            <SalonBookingsList 
-              bookings={bookings}
-              handleCompleteBooking={handleCompleteBooking}
-              handleCancelBooking={handleCancelBooking}
-            />
+            <SalonBookingsList />
           </>
         )}
         
         {/* Bookings View */}
         {currentView === 'bookings' && (
-          <SalonBookingsList 
-            bookings={bookings}
-            handleCompleteBooking={handleCompleteBooking}
-            handleCancelBooking={handleCancelBooking}
-          />
+          <SalonBookingsList />
         )}
         
         {/* Services View */}
         {currentView === 'services' && (
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="text-center">
-              <Scissors className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Services Management</h2>
-              <p className="text-gray-600 dark:text-gray-400">Add and manage your salon services (Coming Soon)</p>
-            </div>
-          </div>
+          <SalonServiceManagement />
         )}
         
         {/* Customers View */}

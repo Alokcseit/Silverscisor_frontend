@@ -16,9 +16,13 @@ import {QueueProvider} from './context/QueueContext'
 import { useSelector } from 'react-redux';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import { useFcm } from './hooks/useFcm';
+
 function AppRoutes() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  useFcm();
 
   // Redux state
   const adminAuth = useSelector((state) => state.admin);
