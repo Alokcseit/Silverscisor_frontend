@@ -23,7 +23,7 @@ const CustomerQueueStatus = ({ onNavigateHome }) => {
         const todayStr = today.toDateString();
         const active = (json.data || []).filter(
           (b) =>
-            b.status === 'confirmed' &&
+            ['confirmed', 'in_service'].includes(b.status) &&
             new Date(b.date).toDateString() === todayStr
         );
         setBookings(active);
