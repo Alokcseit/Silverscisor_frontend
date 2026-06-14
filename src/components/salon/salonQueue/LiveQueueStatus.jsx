@@ -1,46 +1,55 @@
-// src/components/customer/LiveQueueStatus.jsx
-
 import React, { useEffect, useState } from 'react';
 import { Clock, Users, AlertCircle, CheckCircle, Bell } from 'lucide-react';
-import { useQueue } from '../../context/QueueContext';
-import { useAuth } from '../../context/AuthContext';
+import { useQueue } from '../../../context/QueueContext';
 
-const LiveQueueStatus = ({ bookingId }) => {
-  const { queue } = useQueue();
-  const { user } = useAuth();
+const LiveQueueStatus = ({ bookingId, salonId }) => {
+  const { queue, currentServing, joinSalon, leaveSalon } = useQueue();
   const [myBooking, setMyBooking] = useState(null);
   const [position, setPosition] = useState(0);
 
   useEffect(() => {
-    const booking = queue.find(b => b.id === bookingId);
-    if (booking) {
-      setMyBooking(booking);
-      setPosition(queue.findIndex(b => b.id === bookingId) + 1);
+    if (salonId) {
+      joinSalon(salonId);
+      return () => leaveSalon();
     }
-  }, [queue, bookingId]);
+  }, [salonId, joinSalon, leaveSalon]);
+
+  useEffect(() => {
+    const all = currentServing ? [currentServing, ...queue] : queue;
+    const idx = all.findIndex((b) => b._id === bookingId);
+    if (idx !== -1) {
+      setMyBooking(all[idx]);
+      setPosition(idx + 1);
+    }
+  }, [queue, currentServing, bookingId]);
 
   if (!myBooking) return null;
 
   const getStatusColor = () => {
-    if (myBooking.estimatedDelay === 0) return 'from-green-500 to-emerald-500';
+    if (!myBooking.estimatedDelay || myBooking.estimatedDelay === 0) return 'from-green-500 to-emerald-500';
     if (myBooking.estimatedDelay <= 10) return 'from-yellow-500 to-orange-500';
     return 'from-red-500 to-pink-500';
   };
 
   const getStatusIcon = () => {
-    if (myBooking.estimatedDelay === 0) return <CheckCircle className="w-6 h-6" />;
+    if (!myBooking.estimatedDelay || myBooking.estimatedDelay === 0) return <CheckCircle className="w-6 h-6" />;
     return <AlertCircle className="w-6 h-6" />;
   };
 
   const getStatusMessage = () => {
-    if (myBooking.estimatedDelay === 0) return 'On Time!';
+    if (!myBooking.estimatedDelay || myBooking.estimatedDelay === 0) return 'On Time!';
     if (myBooking.estimatedDelay <= 10) return `${myBooking.estimatedDelay} min delay`;
-    return `${myBooking.estimatedDelay} min delay - Adjusted time sent`;
+    return `${myBooking.estimatedDelay} min delay — Adjusted time sent`;
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return '--';
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      
       {/* Live Status Card */}
       <div className={`bg-gradient-to-r ${getStatusColor()} text-white rounded-2xl p-6 shadow-xl mb-6`}>
         <div className="flex items-center justify-between mb-4">
@@ -61,10 +70,10 @@ const LiveQueueStatus = ({ bookingId }) => {
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
             <p className="text-sm mb-1">New Arrival Time:</p>
             <p className="text-2xl font-bold">
-              {myBooking.newArrivalTime?.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+              {formatTime(myBooking.newArrivalTime)}
             </p>
             <p className="text-xs opacity-90 mt-2">
-              💡 Come at this time to avoid waiting at the salon
+              Come at this time to avoid waiting at the salon
             </p>
           </div>
         )}
@@ -80,15 +89,15 @@ const LiveQueueStatus = ({ bookingId }) => {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-gray-600 dark:text-gray-400">Scheduled Time:</span>
-            <span className="font-semibold text-gray-800 dark:text-gray-200">{myBooking.time}</span>
+            <span className="font-semibold text-gray-800 dark:text-gray-200">{myBooking.timeSlot || '--'}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600 dark:text-gray-400">Service:</span>
-            <span className="font-semibold text-gray-800 dark:text-gray-200">{myBooking.service.name}</span>
+            <span className="font-semibold text-gray-800 dark:text-gray-200">{myBooking.service?.name || '--'}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600 dark:text-gray-400">Duration:</span>
-            <span className="font-semibold text-gray-800 dark:text-gray-200">{myBooking.service.estimatedDuration} min</span>
+            <span className="font-semibold text-gray-800 dark:text-gray-200">{myBooking.service?.estimatedDuration || '--'} min</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600 dark:text-gray-400">Customers Ahead:</span>
@@ -101,7 +110,7 @@ const LiveQueueStatus = ({ bookingId }) => {
             <div className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
               <Bell className="w-4 h-4" />
               <p className="text-sm">
-                We'll send you a WhatsApp notification with the updated time
+                We'll send you a notification with the updated time
               </p>
             </div>
           </div>

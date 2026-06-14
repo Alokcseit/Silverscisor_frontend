@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, Clock, Scissors, CheckCircle, XCircle, AlertCircle, Loader2, Star, MapPin, ThumbsUp } from 'lucide-react';
+import LiveQueueStatus from '../salon/salonQueue/LiveQueueStatus';
 
 const SALON_API = import.meta.env.VITE_SALON_API_URL || 'http://localhost:5002/api';
 
@@ -194,6 +195,10 @@ const CustomerBookingHistory = ({ onNavigateHome }) => {
                   <div className="mb-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-2.5 text-xs text-red-600 dark:text-red-400">
                     कारण: {booking.cancellation.reason}
                   </div>
+                )}
+
+                {booking.status === 'confirmed' && booking.salonId?._id && new Date(booking.date).toDateString() === new Date().toDateString() && (
+                  <LiveQueueStatus bookingId={booking._id} salonId={booking.salonId._id} />
                 )}
 
                 <div className="flex gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">

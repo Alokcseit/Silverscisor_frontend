@@ -1,100 +1,195 @@
-// src/context/QueueContext.jsx
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { io } from 'socket.io-client';
+import axios from 'axios';
 
 const QueueContext = createContext(null);
 
-export const QueueProvider = ({ children }) => {
+const SALON_API = import.meta.env.VITE_SALON_API_URL;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
+const QueueProvider = ({ children }) => {
   const [queue, setQueue] = useState([]);
   const [currentServing, setCurrentServing] = useState(null);
-  const [estimatedDelay, setEstimatedDelay] = useState(0);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState(null);
+  const socketRef = useRef(null);
+  const salonIdRef = useRef(null);
+  const tokenRef = useRef(null);
+  const intervalRef = useRef(null);
 
-  // Calculate real-time delays
-  const calculateDelays = () => {
-    let cumulativeDelay = 0;
-    const now = new Date();
+  const fetchQueue = useCallback(async (salonId, token) => {
+    try {
+      const res = await axios.get(`${SALON_API}/api/queue/${salonId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const bookings = res.data.data || [];
+      const serving = bookings.find((b) => b.status === 'in_service');
+      setQueue(bookings.filter((b) => b.status !== 'in_service'));
+      setCurrentServing(serving || null);
+    } catch (err) {
+      console.error('Queue fetch error:', err.message);
+    }
+  }, []);
 
-    const updatedQueue = queue.map((booking, index) => {
-      const scheduledTime = new Date(`${booking.date} ${booking.time}`);
-      
-      if (index === 0 && currentServing) {
-        // Current customer being served
-        const elapsedTime = (now - currentServing.startTime) / 60000; // minutes
-        const remainingTime = Math.max(0, booking.service.estimatedDuration - elapsedTime);
-        cumulativeDelay = Math.max(0, remainingTime - ((scheduledTime - now) / 60000));
-      } else if (index > 0) {
-        // Future customers
-        const previousBooking = queue[index - 1];
-        cumulativeDelay += Math.max(0, previousBooking.actualDuration - previousBooking.service.estimatedDuration);
-      }
+  const joinSalon = useCallback((salonId) => {
+    const token = localStorage.getItem('silverscissor_token');
+    if (!token || !salonId) return;
+    tokenRef.current = token;
+    salonIdRef.current = salonId;
 
-      return {
-        ...booking,
-        estimatedDelay: Math.round(cumulativeDelay),
-        newArrivalTime: new Date(scheduledTime.getTime() + cumulativeDelay * 60000)
-      };
+    fetchQueue(salonId, token);
+
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('queue:join', { salonId, role: 'salon' });
+      return;
+    }
+
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
     });
 
-    setQueue(updatedQueue);
-  };
+    socket.on('connect', () => {
+      setIsConnected(true);
+      socket.emit('queue:join', { salonId, role: 'salon' });
+    });
 
-  // Start serving a customer
-  const startService = (bookingId) => {
-    const booking = queue.find(b => b.id === bookingId);
-    if (booking) {
-      setCurrentServing({
-        ...booking,
-        startTime: new Date()
+    socket.on('queue:state', () => {
+      fetchQueue(salonId, token);
+    });
+
+    socket.on('queue:service_started', ({ bookingId }) => {
+      setQueue((prev) => {
+        const started = prev.find((b) => b._id === bookingId);
+        if (started) {
+          setCurrentServing({ ...started, status: 'in_service', actualStartTime: new Date() });
+          return prev.filter((b) => b._id !== bookingId);
+        }
+        return prev;
+      });
+    });
+
+    socket.on('queue:service_completed', ({ bookingId, updatedDelays }) => {
+      setCurrentServing(null);
+      if (updatedDelays) {
+        const serving = updatedDelays.find((b) => b.status === 'in_service');
+        setQueue(updatedDelays.filter((b) => b.status !== 'in_service'));
+        setCurrentServing(serving || null);
+      } else {
+        fetchQueue(salonId, token);
+      }
+    });
+
+    socket.on('queue:delay_alert', (delayData) => {
+      setQueue((prev) =>
+        prev.map((b) =>
+          b._id === delayData.bookingId
+            ? { ...b, estimatedDelay: delayData.estimatedDelay, newArrivalTime: delayData.newArrivalTime, hasSignificantDelay: delayData.hasSignificantDelay }
+            : b
+        )
+      );
+    });
+
+    socket.on('disconnect', () => setIsConnected(false));
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err.message);
+      setIsConnected(false);
+    });
+
+    socketRef.current = socket;
+  }, [fetchQueue]);
+
+  const leaveSalon = useCallback(() => {
+    if (socketRef.current?.connected && salonIdRef.current) {
+      socketRef.current.emit('queue:leave', { salonId: salonIdRef.current });
+    }
+    salonIdRef.current = null;
+  }, []);
+
+  const startService = useCallback(async (bookingId) => {
+    const token = tokenRef.current;
+    if (!token) return;
+    try {
+      await axios.put(
+        `${SALON_API}/api/queue/${bookingId}/start`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error('Start service error:', err.message);
+    }
+  }, []);
+
+  const completeService = useCallback(async (bookingId) => {
+    const token = tokenRef.current;
+    if (!token) return;
+    try {
+      const res = await axios.put(
+        `${SALON_API}/api/queue/${bookingId}/complete`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data.updatedDelays) {
+        const updated = res.data.updatedDelays;
+        const serving = updated.find((b) => b.status === 'in_service');
+        setQueue(updated.filter((b) => b.status !== 'in_service'));
+        setCurrentServing(serving || null);
+      } else {
+        if (salonIdRef.current && tokenRef.current) {
+          fetchQueue(salonIdRef.current, tokenRef.current);
+        }
+      }
+    } catch (err) {
+      console.error('Complete service error:', err.message);
+    }
+  }, [fetchQueue]);
+
+  const notifyDelay = useCallback(async (bookingId) => {
+    const token = tokenRef.current;
+    if (!token || !salonIdRef.current) return;
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('queue:notify_delay', {
+        salonId: salonIdRef.current,
+        bookingId,
       });
     }
-  };
-
-  // Complete service
-  const completeService = (bookingId, actualDuration) => {
-    setQueue(queue.map(b => 
-      b.id === bookingId 
-        ? { ...b, status: 'completed', actualDuration }
-        : b
-    ));
-    setCurrentServing(null);
-    calculateDelays();
-  };
-
-  // Add booking to queue
-  const addToQueue = (booking) => {
-    setQueue([...queue, { ...booking, estimatedDelay: 0 }]);
-  };
-
-  // Remove from queue
-  const removeFromQueue = (bookingId) => {
-    setQueue(queue.filter(b => b.id !== bookingId));
-    calculateDelays();
-  };
+  }, []);
 
   useEffect(() => {
-    // Recalculate delays every minute
-    const interval = setInterval(calculateDelays, 60000);
-    return () => clearInterval(interval);
-  }, [queue, currentServing]);
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []);
 
   const value = {
     queue,
     currentServing,
-    estimatedDelay,
+    isConnected,
+    error,
+    joinSalon,
+    leaveSalon,
     startService,
     completeService,
-    addToQueue,
-    removeFromQueue,
-    calculateDelays
+    notifyDelay,
+    fetchQueue,
   };
 
   return <QueueContext.Provider value={value}>{children}</QueueContext.Provider>;
 };
 
-export const useQueue = () => {
+const useQueue = () => {
   const context = useContext(QueueContext);
   if (!context) {
     throw new Error('useQueue must be used within QueueProvider');
   }
   return context;
 };
+
+export { QueueProvider, useQueue };

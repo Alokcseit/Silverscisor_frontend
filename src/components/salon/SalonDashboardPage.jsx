@@ -1,10 +1,11 @@
 // src/pages/SalonDashboardPage.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SalonHeader from '../salon/SalonHeader';
 import SalonStats from '../salon/SalonStats';
 import SalonBookingsList from '../salon/SalonBookingsList';
 import SalonBottomNav from '../salon/SalonBottomNav';
+import axios from 'axios';
 
 import { Users, DollarSign, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -14,45 +15,26 @@ import PricingPage from '../subscription/PricingPage';
 import TokenWallet from '../subscription/TokenWallet';
 import TokenRechargeModal from '../subscription/TokenRechargeModal';
 
+const SALON_API = import.meta.env.VITE_SALON_API_URL;
+
 const SalonDashboardPage = () => {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [showRechargeModal, setShowRechargeModal] = useState(false);
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      customerName: 'राहुल कुमार',
-      phone: '+91 98765 43210',
-      service: 'Haircut + Beard',
-      time: '11:00 AM',
-      duration: '45 मिनट',
-      price: 250,
-      status: 'confirmed',
-      date: '2026-01-25'
-    },
-    {
-      id: 2,
-      customerName: 'प्रिया शर्मा',
-      phone: '+91 98765 43211',
-      service: 'Facial',
-      time: '02:00 PM',
-      duration: '45 मिनट',
-      price: 500,
-      status: 'pending',
-      date: '2026-01-25'
-    },
-    {
-      id: 3,
-      customerName: 'अमित वर्मा',
-      phone: '+91 98765 43212',
-      service: 'Hair Color',
-      time: '04:00 PM',
-      duration: '60 मिनट',
-      price: 800,
-      status: 'confirmed',
-      date: '2026-01-25'
-    }
-  ]);
+  const [salonId, setSalonId] = useState(null);
+  const [bookings, setBookings] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('silverscissor_token');
+    if (!token) return;
+    axios.post(`${SALON_API}/api/salon/profile`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      if (res.data?.data?._id) {
+        setSalonId(res.data.data._id);
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleCompleteBooking = (id) => {
     setBookings(bookings.map(booking => 
@@ -124,7 +106,7 @@ const SalonDashboardPage = () => {
         )}
 
         {currentView === 'queue' && (
-          <QueueManager />
+          <QueueManager salonId={salonId} />
         )}
         {currentView === 'subscription' && (
          <PricingPage />
