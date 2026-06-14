@@ -152,6 +152,19 @@ const QueueProvider = ({ children }) => {
         salonId: salonIdRef.current,
         bookingId,
       });
+      return new Promise((resolve) => {
+        const handler = (data) => {
+          if (data.bookingId === bookingId) {
+            socketRef.current?.off('queue:notify_delay_confirmed', handler);
+            resolve(data);
+          }
+        };
+        socketRef.current?.on('queue:notify_delay_confirmed', handler);
+        setTimeout(() => {
+          socketRef.current?.off('queue:notify_delay_confirmed', handler);
+          resolve(null);
+        }, 8000);
+      });
     }
   }, []);
 

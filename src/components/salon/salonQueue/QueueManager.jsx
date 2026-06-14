@@ -5,6 +5,7 @@ import { useQueue } from '../../../context/QueueContext';
 const QueueManager = ({ salonId }) => {
   const { queue, currentServing, isConnected, startService, completeService, notifyDelay, joinSalon, leaveSalon } = useQueue();
   const [serviceStartTimes, setServiceStartTimes] = useState({});
+  const [notifyingId, setNotifyingId] = useState(null);
 
   useEffect(() => {
     if (salonId) {
@@ -161,11 +162,16 @@ const QueueManager = ({ salonId }) => {
                 )}
                 {booking.estimatedDelay > 5 && (
                   <button
-                    onClick={() => notifyDelay(booking._id)}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center gap-2 whitespace-nowrap"
+                    onClick={async () => {
+                      setNotifyingId(booking._id);
+                      await notifyDelay(booking._id);
+                      setNotifyingId((id) => id === booking._id ? null : id);
+                    }}
+                    disabled={notifyingId === booking._id}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center gap-2 whitespace-nowrap disabled:opacity-60"
                   >
-                    <Bell className="w-4 h-4" />
-                    Notify
+                    <Bell className={`w-4 h-4 ${notifyingId === booking._id ? 'animate-pulse' : ''}`} />
+                    {notifyingId === booking._id ? 'Sending...' : 'Notify'}
                   </button>
                 )}
               </div>
