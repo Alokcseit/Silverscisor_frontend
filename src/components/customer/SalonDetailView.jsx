@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft, Star, MapPin, Phone, Clock, Scissors, ChevronRight,
-  Sparkles, Zap, Palette, User as UserIcon, Loader2, Check
+  Sparkles, Zap, Palette, User as UserIcon, Loader2, Check, MessageSquare
 } from 'lucide-react';
+import SalonReviewsList, { SalonReviewsModal } from './SalonReviewsList';
 
 const SALON_API = import.meta.env.VITE_SALON_API_URL || 'http://localhost:5002/api';
 
@@ -20,6 +21,7 @@ const SalonDetailView = ({ salon, userData, onBack, onBookService }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
     if (!salon?._id) return;
@@ -198,7 +200,37 @@ const SalonDetailView = ({ salon, userData, onBack, onBookService }) => {
             })}
           </div>
         )}
+
+        {/* Reviews Section */}
+        {salon._id && (
+          <div className="mt-4 bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                Reviews
+              </h3>
+              {salon.stats?.totalReviews > 3 && (
+                <button
+                  onClick={() => setShowAllReviews(true)}
+                  className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+                >
+                  See all
+                </button>
+              )}
+            </div>
+            <SalonReviewsList salonId={salon._id} salonName={salon.salonName} />
+          </div>
+        )}
       </div>
+
+      {/* All Reviews Modal */}
+      {showAllReviews && salon._id && (
+        <SalonReviewsModal
+          salonId={salon._id}
+          salonName={salon.salonName}
+          onClose={() => setShowAllReviews(false)}
+        />
+      )}
     </div>
   );
 };

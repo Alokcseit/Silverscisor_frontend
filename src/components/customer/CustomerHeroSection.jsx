@@ -332,6 +332,7 @@ const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
                       <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-2 py-0.5 flex items-center gap-1 text-xs font-bold text-yellow-600">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                         {salon.stats.averageRating.toFixed(1)}
+                        <span className="text-yellow-400 font-normal">({salon.stats.totalReviews || 0})</span>
                       </div>
                     )}
                   </div>
