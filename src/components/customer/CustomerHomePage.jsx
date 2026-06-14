@@ -9,6 +9,7 @@ import BookingForm from './BookingForm';
 import ConfirmationModal from './ConfirmationModal';
 import CustomerBottomNav from './CustomerBottomNav';
 import CustomerBookingHistory from './CustomerBookingHistory';
+import CustomerQueueStatus from './CustomerQueueStatus';
 import RecommendedServices from './recommendations/RecommendedServices';
 import PersonalizedSuggestions from './recommendations/PersonalizedSuggestions';
 import AIStyleButton from './recommendations/AIStyleButton';
@@ -348,6 +349,11 @@ const CustomerHomePage = ({ userData, onLogout }) => {
             />
           )}
         </>
+      )}
+
+      {/* Queue Status / Alerts View */}
+      {currentView === 'notifications' && (
+        <CustomerQueueStatus onNavigateHome={handleNavigateHome} />
       )}
 
       {/* Bookings History View */}

@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, Users, AlertCircle, CheckCircle, Bell } from 'lucide-react';
+import { Clock, Users, AlertCircle, CheckCircle, Bell, MapPin } from 'lucide-react';
 import { useQueue } from '../../../context/QueueContext';
+
+const SALON_API = import.meta.env.VITE_SALON_API_URL || 'http://localhost:5002/api';
 
 const LiveQueueStatus = ({ bookingId, salonId }) => {
   const { queue, currentServing, joinSalon, leaveSalon } = useQueue();
   const [myBooking, setMyBooking] = useState(null);
   const [position, setPosition] = useState(0);
+  const [checkingIn, setCheckingIn] = useState(false);
+
+  const token = localStorage.getItem('silverscissor_token');
 
   useEffect(() => {
     if (salonId) {
@@ -22,6 +27,17 @@ const LiveQueueStatus = ({ bookingId, salonId }) => {
       setPosition(idx + 1);
     }
   }, [queue, currentServing, bookingId]);
+
+  const handleCheckIn = async () => {
+    setCheckingIn(true);
+    try {
+      await fetch(`${SALON_API}/api/queue/${bookingId}/checkin`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+    } catch {}
+    setCheckingIn(false);
+  };
 
   if (!myBooking) return null;
 
@@ -113,6 +129,28 @@ const LiveQueueStatus = ({ bookingId, salonId }) => {
           )}
         </div>
 
+        {/* Check-in Button */}
+        {!myBooking.checkedIn && (
+          <button
+            onClick={handleCheckIn}
+            disabled={checkingIn}
+            className="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            <MapPin className="w-5 h-5" />
+            {checkingIn ? 'Checking in...' : 'I\'m at the Salon — Check In'}
+          </button>
+        )}
+
+        {myBooking.checkedIn && (
+          <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+              <CheckCircle className="w-5 h-5" />
+              <p className="text-sm font-semibold">आपने check-in कर लिया है ✓</p>
+            </div>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">सैलून को आपकी उपस्थिति की सूचना दे दी गई है</p>
+          </div>
+        )}
+
         {hasDelay && (
           <div className="mt-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
             <div className="flex items-start gap-3 text-purple-800 dark:text-purple-200">
@@ -139,6 +177,17 @@ const LiveQueueStatus = ({ bookingId, salonId }) => {
               <p className="text-xs text-gray-500">{myBooking.timeSlot} पर निर्धारित</p>
             </div>
           </div>
+          {myBooking.checkedIn && (
+            <div className="ml-1.5 border-l-2 border-dashed border-gray-300 dark:border-gray-600 pl-5">
+              <div className="flex items-center gap-3 py-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">सैलून पहुंच गए</p>
+                  <p className="text-xs text-gray-500">Check-in कर लिया गया</p>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="ml-1.5 border-l-2 border-dashed border-gray-300 dark:border-gray-600 pl-5">
             {hasDelay ? (
               <div className="flex items-center gap-3 py-2">

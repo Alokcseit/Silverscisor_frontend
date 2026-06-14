@@ -90,6 +90,27 @@ const QueueProvider = ({ children }) => {
       );
     });
 
+    socket.on('queue:started', () => {
+      fetchQueue(salonId, token);
+    });
+
+    socket.on('queue:closed', () => {
+      setQueue([]);
+      setCurrentServing(null);
+      fetchQueue(salonId, token);
+    });
+
+    socket.on('queue:checkin', ({ bookingId }) => {
+      setQueue((prev) =>
+        prev.map((b) =>
+          b._id === bookingId ? { ...b, checkedIn: true } : b
+        )
+      );
+      setCurrentServing((prev) =>
+        prev && prev._id === bookingId ? { ...prev, checkedIn: true } : prev
+      );
+    });
+
     socket.on('disconnect', () => setIsConnected(false));
     socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message);
@@ -144,6 +165,43 @@ const QueueProvider = ({ children }) => {
     }
   }, [fetchQueue]);
 
+  const startQueue = useCallback(async () => {
+    if (socketRef.current?.connected && salonIdRef.current) {
+      socketRef.current.emit('queue:started', { salonId: salonIdRef.current });
+    }
+  }, []);
+
+  const closeQueue = useCallback(async () => {
+    if (socketRef.current?.connected && salonIdRef.current) {
+      socketRef.current.emit('queue:closed', { salonId: salonIdRef.current });
+    }
+  }, []);
+
+  const checkIn = useCallback(async (bookingId) => {
+    const token = tokenRef.current;
+    if (!token || !salonIdRef.current) return;
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('queue:checkin', {
+        salonId: salonIdRef.current,
+        bookingId,
+      });
+    }
+  }, []);
+
+  const walkIn = useCallback(async (data) => {
+    const token = tokenRef.current;
+    if (!token) return null;
+    try {
+      const res = await axios.post(`${SALON_API}/api/queue/walk-in`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    } catch (err) {
+      console.error('Walk-in error:', err.response?.data?.message || err.message);
+      return null;
+    }
+  }, []);
+
   const notifyDelay = useCallback(async (bookingId) => {
     const token = tokenRef.current;
     if (!token || !salonIdRef.current) return;
@@ -190,6 +248,10 @@ const QueueProvider = ({ children }) => {
     leaveSalon,
     startService,
     completeService,
+    startQueue,
+    closeQueue,
+    checkIn,
+    walkIn,
     notifyDelay,
     fetchQueue,
   };
