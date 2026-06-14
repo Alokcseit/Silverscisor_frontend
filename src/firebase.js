@@ -10,6 +10,11 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+const missing = Object.entries(firebaseConfig).filter(([, v]) => !v);
+if (missing.length > 0) {
+  console.warn("Firebase config missing:", missing.map(([k]) => k).join(", "));
+}
+
 const app = initializeApp(firebaseConfig);
 
 let messaging = null;
