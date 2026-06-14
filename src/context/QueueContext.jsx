@@ -69,11 +69,11 @@ const QueueProvider = ({ children }) => {
       });
     });
 
-    socket.on('queue:service_completed', ({ bookingId, updatedDelays }) => {
+    socket.on('queue:service_completed', ({ bookingId, updatedQueue }) => {
       setCurrentServing(null);
-      if (updatedDelays) {
-        const serving = updatedDelays.find((b) => b.status === 'in_service');
-        setQueue(updatedDelays.filter((b) => b.status !== 'in_service'));
+      if (updatedQueue) {
+        const serving = updatedQueue.find((b) => b.status === 'in_service');
+        setQueue(updatedQueue.filter((b) => b.status !== 'in_service'));
         setCurrentServing(serving || null);
       } else {
         fetchQueue(salonId, token);
@@ -129,8 +129,8 @@ const QueueProvider = ({ children }) => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (res.data.updatedDelays) {
-        const updated = res.data.updatedDelays;
+      if (res.data.updatedQueue) {
+        const updated = res.data.updatedQueue;
         const serving = updated.find((b) => b.status === 'in_service');
         setQueue(updated.filter((b) => b.status !== 'in_service'));
         setCurrentServing(serving || null);
