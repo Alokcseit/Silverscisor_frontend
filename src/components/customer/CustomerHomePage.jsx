@@ -80,23 +80,27 @@ const CustomerHomePage = ({ userData, onLogout }) => {
     setAiResult(result);
     setAiCapturedImage(image);
     setShowFaceModal(false);
+    // Auto-generate AI photos immediately so user sees their own face
+    setTimeout(() => handleGenerateAIPhotos(result, image), 500);
   };
 
   // Generate AI photos for recommendations
-  const handleGenerateAIPhotos = async () => {
-    if (!aiResult || !aiCapturedImage) return;
+  const handleGenerateAIPhotos = async (result, image) => {
+    const currentResult = result || aiResult;
+    const currentImage = image || aiCapturedImage;
+    if (!currentResult || !currentImage) return;
     setGeneratingAIPhotos(true);
     try {
       const allStyles = [
-        ...aiResult.recommendations.haircuts.map(s => ({ id: s.id, name: s.name, type: 'haircuts' })),
-        ...aiResult.recommendations.beardStyles.map(s => ({ id: s.id, name: s.name, type: 'beardStyles' })),
-        ...aiResult.recommendations.hairColors.map(s => ({ id: s.id, name: s.name, type: 'hairColors' })),
+        ...currentResult.recommendations.haircuts.map(s => ({ id: s.id, name: s.name, type: 'haircuts' })),
+        ...currentResult.recommendations.beardStyles.map(s => ({ id: s.id, name: s.name, type: 'beardStyles' })),
+        ...currentResult.recommendations.hairColors.map(s => ({ id: s.id, name: s.name, type: 'hairColors' })),
       ];
 
       const res = await fetch(`${API_URL}/generate-style-images`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: aiCapturedImage, styles: allStyles }),
+        body: JSON.stringify({ image: currentImage, styles: allStyles }),
       });
       const json = await res.json();
       if (json.success && json.images) {

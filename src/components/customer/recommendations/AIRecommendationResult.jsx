@@ -16,22 +16,34 @@ const CategoryTab = ({ label, active, onClick, count }) => (
   </button>
 );
 
-const ServiceCard = ({ item, onSelect, type, isAIGenerated }) => (
+const ServiceCard = ({ item, onSelect, type, isAIGenerated, capturedImage, generating }) => {
+  const isStockPhoto = item.image && item.image.includes('unsplash');
+  const hasNoImage = !item.image;
+  const useCaptured = (isStockPhoto || hasNoImage) && capturedImage;
+  const displayImage = useCaptured ? capturedImage : item.image;
+  const isWaitingForAI = useCaptured && generating;
+
+  return (
   <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group flex flex-col">
     <div
       onClick={() => onSelect(item, type)}
       className="relative h-36 sm:h-44 overflow-hidden bg-gray-100 dark:bg-gray-900 cursor-pointer"
     >
-      {item.image ? (
+      {displayImage ? (
         <>
           <img
-            src={item.image}
+            src={displayImage}
             alt={item.name}
             className="w-full h-full object-cover"
           />
           {isAIGenerated && (
             <div className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
               <Sparkles className="w-3 h-3" /> AI
+            </div>
+          )}
+          {isWaitingForAI && !isAIGenerated && (
+            <div className="absolute top-2 left-2 bg-blue-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> Generating AI...
             </div>
           )}
         </>
@@ -84,7 +96,8 @@ const ServiceCard = ({ item, onSelect, type, isAIGenerated }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClose, generating, onGenerateAIPhotos }) => {
   const [activeTab, setActiveTab] = useState('haircuts');
@@ -182,7 +195,7 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
         </div>
 
         {/* Service Cards */}
-        <div className="px-4 sm:px-5 pb-4 sm:pb-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {activeData.map(item => (
             <ServiceCard
               key={item.id}
@@ -190,6 +203,8 @@ const AIRecommendationResult = ({ result, capturedImage, onServiceSelect, onClos
               onSelect={handleSelect}
               type={activeTab}
               isAIGenerated={hasAIImage(item)}
+              capturedImage={capturedImage}
+              generating={generating}
             />
           ))}
         </div>
