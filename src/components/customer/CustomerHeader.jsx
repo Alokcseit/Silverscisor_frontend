@@ -170,7 +170,7 @@ const CustomerHeader = () => {
                 </button>
 
                 {showNotifDropdown && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-50 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white max-h-[70vh] flex flex-col">
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 max-sm:max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-50 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white max-h-[70vh] flex flex-col">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                       <h3 className="font-bold">Notifications</h3>
                       {unreadCount > 0 && (
@@ -244,7 +244,7 @@ const CustomerHeader = () => {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowProfileDropdown(false)}
                     ></div>
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white">
+                    <div className="absolute right-0 mt-2 w-64 max-sm:max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white">
                       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                         <p className="font-semibold">{user?.name}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>

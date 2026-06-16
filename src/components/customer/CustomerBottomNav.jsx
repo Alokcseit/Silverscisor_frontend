@@ -8,7 +8,6 @@ const CustomerBottomNav = ({ currentView, setCurrentView }) => {
     { id: 'home', label: 'होम', icon: Home },
     { id: 'bookings', label: 'बुकिंग्स', icon: Calendar },
     { id: 'notifications', label: 'अलर्ट', icon: Bell, badge: 3 },
-    { id: 'profile', label: 'प्रोफाइल', icon: User },
   ];
 
   return (
