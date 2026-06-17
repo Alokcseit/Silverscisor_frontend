@@ -22,6 +22,42 @@ const CATEGORY_COLORS = {
   other: { from: 'from-gray-500', to: 'to-slate-400', shadow: 'shadow-gray-500/20' },
 };
 
+const ServiceImageWithFallback = ({ service, IconComponent, colors }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className={`h-28 sm:h-32 bg-gradient-to-br ${colors.from} ${colors.to} flex flex-col items-center justify-center p-3 text-white`}>
+        <IconComponent className="w-8 h-8 mb-1 opacity-80" strokeWidth={1.5} />
+        <h3 className="text-sm font-bold text-center leading-tight drop-shadow-sm">{service.name}</h3>
+        {service.description && (
+          <p className="text-[10px] text-white/70 mt-0.5 text-center line-clamp-1">{service.description}</p>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="relative h-28 sm:h-32 bg-gray-100 dark:bg-gray-800">
+      <img
+        src={service.imageUrl}
+        alt={service.name}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div className="absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center bg-white/20 backdrop-blur-sm text-white">
+        <IconComponent className="w-4 h-4" />
+      </div>
+      <div className="absolute bottom-2 left-2 right-2">
+        <h3 className="text-sm font-bold text-white drop-shadow-sm leading-tight">{service.name}</h3>
+        {service.description && (
+          <p className="text-[10px] text-white/70 mt-0.5 line-clamp-1 drop-shadow-sm">{service.description}</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const ServiceSelection = ({ selectedService, setSelectedService, onServiceSelect, setShowBookingForm }) => {
   const [catalogServices, setCatalogServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -143,29 +179,11 @@ const ServiceSelection = ({ selectedService, setSelectedService, onServiceSelect
                 `}>
                   {/* Background Image */}
                   {hasImage ? (
-                    <div className="relative h-28 sm:h-32 bg-gray-100 dark:bg-gray-800">
-                      <img
-                        src={service.imageUrl}
-                        alt={service.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                      {/* Icon on image */}
-                      <div className="absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center bg-white/20 backdrop-blur-sm text-white">
-                        <IconComponent className="w-4 h-4" />
-                      </div>
-                      {/* Name on image */}
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <h3 className="text-sm font-bold text-white drop-shadow-sm leading-tight">
-                          {service.name}
-                        </h3>
-                        {service.description && (
-                          <p className="text-[10px] text-white/70 mt-0.5 line-clamp-1 drop-shadow-sm">
-                            {service.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <ServiceImageWithFallback
+                      service={service}
+                      IconComponent={IconComponent}
+                      colors={colors}
+                    />
                   ) : (
                     <div className={`h-28 sm:h-32 bg-gradient-to-br ${colors.from} ${colors.to} flex flex-col items-center justify-center p-3 text-white`}>
                       <IconComponent className="w-8 h-8 mb-1 opacity-80" strokeWidth={1.5} />

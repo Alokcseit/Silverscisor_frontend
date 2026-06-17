@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, Pencil, Trash2, Loader2, X, Check, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Loader2, X, Check, Image as ImageIcon, Upload } from 'lucide-react';
 import axios from 'axios';
 
 const ADMIN_API = import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:5003/api/admin';
@@ -23,6 +23,8 @@ const CatalogServiceManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(initialForm);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'catalog-services'],
@@ -43,6 +45,24 @@ const CatalogServiceManagement = () => {
     mutationFn: (id) => adminApi.delete(`/services/catalog/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'catalog-services'] }),
   });
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await adminApi.post('/upload', fd);
+      if (res.data.success) {
+        setForm(f => ({ ...f, imageUrl: res.data.data.url }));
+      }
+    } catch {
+      alert('Upload failed');
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const services = Array.isArray(data) ? data : [];
 
@@ -131,10 +151,15 @@ const CatalogServiceManagement = () => {
                 <div className="flex gap-2">
                   <input type="text" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..."
                     className="flex-1 p-2.5 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-indigo-500 text-sm placeholder-gray-500" />
+                  <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                    className="flex items-center gap-1.5 px-3 py-2.5 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm disabled:opacity-60 transition">
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  </button>
                 </div>
                 {form.imageUrl && (
                   <div className="mt-2 w-20 h-20 rounded-lg overflow-hidden bg-gray-700">
-                    <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
+                    <img src={form.imageUrl} alt="preview" referrerPolicy="no-referrer" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
                   </div>
                 )}
               </div>
@@ -183,7 +208,7 @@ const CatalogServiceManagement = () => {
                     <td className="p-3 text-gray-400 text-xs">{svc.displayOrder}</td>
                     <td className="p-3">
                       {svc.imageUrl ? (
-                        <img src={svc.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover bg-gray-700" onError={e => e.target.style.display = 'none'} />
+                        <img src={svc.imageUrl} alt="" referrerPolicy="no-referrer" className="w-10 h-10 rounded-lg object-cover bg-gray-700" onError={e => e.target.style.display = 'none'} />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center">
                           <ImageIcon className="w-5 h-5 text-gray-500" />
