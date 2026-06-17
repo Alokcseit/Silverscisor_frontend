@@ -10,6 +10,7 @@ import ApplicationsList from '../../components/admin/salons/ApplicationsList';
 import UserTable from '../../components/admin/users/UserTable';
 import SubscriptionTable from '../../components/admin/subscriptions/SubscriptionTable';
 import CatalogServiceManagement from '../../components/admin/services/CatalogServiceManagement';
+import ContentSectionManager from '../../components/admin/services/ContentSectionManager';
 import HealthStatus from '../../components/admin/system/HealthStatus';
 import SystemLogs from '../../components/admin/system/SystemLogs';
 
@@ -33,6 +34,7 @@ const AdminDashboardPage = () => {
       case 'users':        return <UserTable />;
       case 'subscriptions':return <SubscriptionTable />;
       case 'services':     return <CatalogServiceManagement />;
+      case 'content':      return <ContentSectionManager />;
       case 'health':       return <HealthStatus />;
       case 'logs':         return <SystemLogs />;
       default:             return <OverviewCards />;

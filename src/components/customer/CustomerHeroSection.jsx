@@ -4,8 +4,10 @@ import AnimatedClipSVG from '../../util/AnimatedClipSVG';
 import TrendingNearYou from './recommendations/TrendingNearYou';
 
 const SALON_API = import.meta.env.VITE_SALON_API_URL || 'http://localhost:5002/api';
+const ADMIN_API = import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:5003/api/admin';
 
 const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
+  const [heroContent, setHeroContent] = useState(null);
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState({ text: 'Detecting location...', lat: null, lng: null });
   const [salons, setSalons] = useState([]);
@@ -13,6 +15,14 @@ const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [locationError, setLocationError] = useState(null);
+
+  // Fetch hero section content from admin panel
+  useEffect(() => {
+    fetch(`${ADMIN_API}/content/hero-section`)
+      .then(r => r.json())
+      .then(json => { if (json.success) setHeroContent(json.data.content); })
+      .catch(() => {});
+  }, []);
 
   // Get user location on mount
   useEffect(() => {
@@ -171,7 +181,7 @@ const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
       {/* Layers */}
       <div
         className="absolute inset-0 opacity-50 dark:opacity-50 bg-cover bg-center bg-no-repeat z-0"
-        style={{ backgroundImage: "url('/src/assets/images/herosvg.png')" }}
+        style={{ backgroundImage: `url('${heroContent?.backgroundImage || '/src/assets/images/herosvg.png'}')` }}
       />
       <div className="absolute inset-0 z-10 opacity-50 pointer-events-none flex items-center justify-center">
         <AnimatedClipSVG />
@@ -187,17 +197,17 @@ const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full bg-white/60 dark:bg-gray-800/60 border border-purple-200 dark:border-purple-700 backdrop-blur-md mb-3 mx-auto md:mx-0">
             <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-purple-600 dark:text-purple-400" />
             <span className="text-[10px] md:text-xs font-bold tracking-wider text-purple-700 dark:text-purple-300 uppercase">
-              Premium Experience
+              {heroContent?.badge || 'Premium Experience'}
             </span>
           </div>
           <h2 className="text-2xl sm:text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-2 md:mb-4 leading-tight tracking-tight">
-            BOOK YOUR <br className="hidden md:block" />
+            {heroContent?.title || 'BOOK YOUR'} <br className="hidden md:block" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 filter drop-shadow-sm">
-              DREAM SALON
+              {heroContent?.titleHighlight || 'DREAM SALON'}
             </span>
           </h2>
           <p className="text-sm sm:text-lg md:text-2xl text-gray-600 dark:text-gray-300 font-medium max-w-md mx-auto md:mx-0 md:border-l-4 md:border-purple-500 md:pl-4">
-            Please come at a time that <span className="text-purple-600 dark:text-purple-400 font-bold underline decoration-wavy decoration-purple-300"> suits you best.</span>
+            {heroContent?.subtitle || 'Please come at a time that'} <span className="text-purple-600 dark:text-purple-400 font-bold underline decoration-wavy decoration-purple-300"> {heroContent?.subtitleHighlight || 'suits you best.'}</span>
           </p>
         </div>
 
