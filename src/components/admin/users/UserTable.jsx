@@ -1,30 +1,54 @@
 // src/components/admin/users/UserTable.jsx
 
-import React, { useState } from 'react';
-import { Search, XCircle, CheckCircle, Loader } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Search, XCircle, CheckCircle, Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAdminUsers, useBlockUser, useUnblockUser } from '../../../hooks/useAdmin';
 
 const UserTable = () => {
   const [search, setSearch] = useState('');
   const [userType, setUserType] = useState('');
-  const [page, setPage] = useState(1);
+  const [cursorStack, setCursorStack] = useState([]);
+  const [cursor, setCursor] = useState(null);
 
-  const { data, isLoading } = useAdminUsers({ search, userType, page, limit: 15 });
+  const params = { limit: 15 };
+  if (search) params.search = search;
+  if (userType) params.userType = userType;
+  if (cursor) params.cursor = cursor;
+
+  const { data, isLoading } = useAdminUsers(params);
   const blockMutation = useBlockUser();
   const unblockMutation = useUnblockUser();
 
   const users = data?.data || [];
-  const totalPages = data?.totalPages || 1;
+  const nextCursor = data?.nextCursor || null;
+  const hasMore = data?.hasMore || false;
+  const total = data?.total || 0;
 
-  const handleBlock = async (userId) => {
-    const reason = prompt('Block reason:');
-    if (!reason) return;
-    await blockMutation.mutateAsync({ userId, reason });
-  };
+  const handleNext = useCallback(() => {
+    if (!nextCursor) return;
+    setCursorStack(prev => [...prev, nextCursor]);
+    setCursor(nextCursor);
+  }, [nextCursor]);
 
-  const handleUnblock = async (userId) => {
-    await unblockMutation.mutateAsync({ userId });
-  };
+  const handlePrev = useCallback(() => {
+    if (cursorStack.length === 0) return;
+    const newStack = [...cursorStack];
+    newStack.pop();
+    setCursorStack(newStack);
+    setCursor(newStack.length > 0 ? newStack[newStack.length - 1] : null);
+  }, [cursorStack]);
+
+  const handleSearchChange = useCallback((e) => {
+    setSearch(e.target.value);
+    setCursorStack([]);
+    setCursor(null);
+  }, []);
+
+  const handleUserTypeChange = useCallback((e) => {
+    setUserType(e.target.value);
+    setCursorStack([]);
+    setCursor(null);
+  }, []);
 
   return (
     <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
@@ -35,14 +59,14 @@ const UserTable = () => {
           <input
             type="text"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="Search users..."
             className="w-full pl-9 pr-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-indigo-500 text-sm placeholder-gray-500"
           />
         </div>
         <select
           value={userType}
-          onChange={e => setUserType(e.target.value)}
+          onChange={handleUserTypeChange}
           className="bg-gray-700 border border-gray-600 text-gray-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
         >
           <option value="">All Users</option>
@@ -130,16 +154,21 @@ const UserTable = () => {
 
       {/* Pagination */}
       <div className="px-4 py-3 border-t border-gray-700 flex items-center justify-between">
-        <p className="text-gray-400 text-sm">Total: {data?.total || 0}</p>
+        <p className="text-gray-400 text-sm">Total: {total}</p>
         <div className="flex gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            className="px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 disabled:opacity-40 transition">
-            Prev
+          <button
+            onClick={handlePrev}
+            disabled={cursorStack.length === 0}
+            className="flex items-center gap-1 px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 disabled:opacity-40 transition"
+          >
+            <ChevronLeft className="w-4 h-4" /> Prev
           </button>
-          <span className="px-3 py-1.5 text-gray-400 text-sm">{page} / {totalPages}</span>
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            className="px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 disabled:opacity-40 transition">
-            Next
+          <button
+            onClick={handleNext}
+            disabled={!hasMore}
+            className="flex items-center gap-1 px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-sm hover:bg-gray-600 disabled:opacity-40 transition"
+          >
+            Next <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
