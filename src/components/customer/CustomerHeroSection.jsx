@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, MapPin, Sparkles, Star, Clock, Phone, ChevronRight, Loader2, Navigation } from 'lucide-react';
 import AnimatedClipSVG from '../../util/AnimatedClipSVG';
 import TrendingNearYou from './recommendations/TrendingNearYou';
@@ -15,6 +15,21 @@ const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [locationError, setLocationError] = useState(null);
+  const scrollRef = useRef(null);
+  const [canScroll, setCanScroll] = useState(false);
+
+  const sortedSalons = [...salons].sort((a, b) => {
+    const ra = a.stats?.averageRating || 0;
+    const rb = b.stats?.averageRating || 0;
+    return rb - ra;
+  });
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) {
+      setCanScroll(el.scrollWidth > el.clientWidth);
+    }
+  }, [salons]);
 
   // Fetch hero section content from admin panel
   useEffect(() => {
@@ -311,77 +326,100 @@ const CustomerHeroSection = ({ onNearbySalons, onViewSalon }) => {
           </div>
         )}
 
-        {!loading && salons.length > 0 && (
+        {!loading && sortedSalons.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {salons.length} salon{salons.length !== 1 ? 's' : ''} found
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-              {salons.map((salon) => (
-                <div
-                  key={salon._id}
-                  className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden border border-gray-100 dark:border-gray-700"
-                >
-                  {/* Image */}
-                  <div className="h-28 md:h-36 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center relative">
-                    {salon.images && salon.images.length > 0 ? (
-                      <img
-                        src={salon.images[0]}
-                        alt={salon.salonName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <MapPin className="w-8 h-8 md:w-12 md:h-12 text-purple-300 dark:text-purple-500 mx-auto" />
-                        <p className="text-[10px] md:text-xs text-purple-400 mt-1 font-medium">{salon.salonName}</p>
+
+            <div className="relative">
+              <div
+                ref={scrollRef}
+                className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                onScroll={() => {
+                  const el = scrollRef.current;
+                  if (el) setCanScroll(el.scrollLeft + el.clientWidth < el.scrollWidth - 5);
+                }}
+              >
+                <style>{`
+                  .scrollbar-hide::-webkit-scrollbar { display: none; }
+                  .carousel-card { animation: fadeInUp 0.4s ease-out both; }
+                  @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(12px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                  }
+                `}</style>
+                {sortedSalons.map((salon, idx) => (
+                  <div
+                    key={salon._id}
+                    className="flex-shrink-0 w-44 sm:w-52 snap-start carousel-card hover:-translate-y-1 transition-all duration-200"
+                    style={{ animationDelay: `${idx * 0.06}s` }}
+                  >
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden border border-gray-100 dark:border-gray-700 h-full">
+                      {/* Image */}
+                      <div className="h-20 sm:h-24 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center relative">
+                        {salon.images && salon.images.length > 0 ? (
+                          <img
+                            src={salon.images[0]}
+                            alt={salon.salonName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-purple-300 dark:text-purple-500 mx-auto" />
+                            <p className="text-[9px] sm:text-[10px] text-purple-400 mt-0.5 font-medium">{salon.salonName}</p>
+                          </div>
+                        )}
+                        {salon.stats?.averageRating > 0 && (
+                          <div className="absolute top-1.5 right-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-1.5 py-0.5 flex items-center gap-1 text-[10px] font-bold text-yellow-600">
+                            <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                            {salon.stats.averageRating.toFixed(1)}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {salon.stats?.averageRating > 0 && (
-                      <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-2 py-0.5 flex items-center gap-1 text-xs font-bold text-yellow-600">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        {salon.stats.averageRating.toFixed(1)}
-                        <span className="text-yellow-400 font-normal">({salon.stats.totalReviews || 0})</span>
+
+                      {/* Info */}
+                      <div className="p-2 sm:p-3 space-y-1">
+                        <h3 className="font-bold text-xs sm:text-sm text-gray-800 dark:text-white truncate">
+                          {salon.salonName}
+                        </h3>
+
+                        <p className="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                          {[
+                            salon.address?.area,
+                            salon.address?.city,
+                          ].filter(Boolean).join(', ')}
+                        </p>
+
+                        <div className="flex items-center justify-between pt-1">
+                          {salon.stats?.totalBookings > 0 && (
+                            <span className="text-[9px] text-gray-400 dark:text-gray-500">
+                              {salon.stats.totalBookings} book{salon.stats.totalBookings !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => onViewSalon?.(salon)}
+                            className="ml-auto text-[10px] sm:text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-0.5 transition"
+                          >
+                            View <ChevronRight className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-3 md:p-4 space-y-2">
-                    <h3 className="font-bold text-sm md:text-base text-gray-800 dark:text-white truncate">
-                      {salon.salonName}
-                    </h3>
-
-                    <p className="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                      {[
-                        salon.address?.area,
-                        salon.address?.city,
-                        salon.address?.state,
-                      ].filter(Boolean).join(', ')}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-[11px] md:text-xs text-gray-500 dark:text-gray-400">
-                      <Phone className="w-3 h-3" />
-                      <span>{salon.contact?.phone || '—'}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      {salon.stats?.totalBookings > 0 && (
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                          {salon.stats.totalBookings} booking{salon.stats.totalBookings !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                      <button
-                        onClick={() => onViewSalon?.(salon)}
-                        className="ml-auto text-[11px] md:text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-0.5 transition"
-                      >
-                        View <ChevronRight className="w-3 h-3" />
-                      </button>
                     </div>
                   </div>
+                ))}
+              </div>
+
+              {canScroll && (
+                <div className="text-center mt-2">
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 animate-pulse">
+                    <ChevronRight className="w-3 h-3" /> Scroll to see next
+                  </span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
