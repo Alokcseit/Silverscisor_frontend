@@ -47,7 +47,7 @@ const UserTable = () => {
         >
           <option value="">All Users</option>
           <option value="customer">Customers</option>
-          <option value="salon_owner">Salon Owners</option>
+          <option value="salon">Salon Owners</option>
         </select>
       </div>
 
@@ -86,11 +86,11 @@ const UserTable = () => {
                   <td className="px-4 py-3 text-gray-300 text-sm">{user.email}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-1 rounded-full font-semibold capitalize ${
-                      user.userType === 'salon_owner'
+                      user.userType === 'salon'
                         ? 'bg-emerald-900/30 text-emerald-400'
                         : 'bg-blue-900/30 text-blue-400'
                     }`}>
-                      {user.userType === 'salon_owner' ? 'Salon Owner' : 'Customer'}
+                      {user.userType === 'salon' ? 'Salon Owner' : 'Customer'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-sm">
