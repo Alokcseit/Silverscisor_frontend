@@ -5,6 +5,7 @@ import CustomerHeader from './CustomerHeader';
 import CustomerHeroSection from './CustomerHeroSection';
 import SalonDetailView from './SalonDetailView';
 import ServiceSelection from './ServiceSelection';
+import SalonForServiceSelect from './SalonForServiceSelect';
 import BookingForm from './BookingForm';
 import ConfirmationModal from './ConfirmationModal';
 import CustomerBottomNav from './CustomerBottomNav';
@@ -20,10 +21,13 @@ import { X, Sparkles, CheckCircle, MapPin, Clock, Send } from 'lucide-react';
 const CustomerHomePage = ({ userData, onLogout }) => {
   const [selectedService, setSelectedService] = useState(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showSalonSelection, setShowSalonSelection] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [currentView, setCurrentView] = useState('home');
   const [selectedSalon, setSelectedSalon] = useState(null);
+  const [bookingSalon, setBookingSalon] = useState(null);
+  const [bookingService, setBookingService] = useState(null);
 
   // AI Analysis states
   const [showFaceModal, setShowFaceModal] = useState(false);
@@ -61,18 +65,35 @@ const CustomerHomePage = ({ userData, onLogout }) => {
     return () => clearInterval(interval);
   }, [myRequests.length]);
 
-  // Service select handler
+  // Service select handler (AI / recommendations)
   const handleServiceSelect = (service) => {
     if (service.aiRecommended) {
       setSelectedAiService(service);
       setShowServiceRequest(true);
     } else {
-      setSelectedService(service);
-      setShowBookingForm(true);
-      setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      }, 100);
+      // Route through salon selection flow
+      handleServiceCardSelect(service);
     }
+  };
+
+  // Service card click from ServiceSelection → show salons offering this service
+  const handleServiceCardSelect = (service) => {
+    setSelectedService(service);
+    setBookingSalon(null);
+    setBookingService(null);
+    setShowBookingForm(false);
+    setShowSalonSelection(true);
+  };
+
+  // Salon selected from SalonForServiceSelect → update service with salon's version & show booking
+  const handleSalonSelectForService = (salon, salonService) => {
+    setBookingSalon(salon);
+    setBookingService(salonService);
+    setShowSalonSelection(false);
+    setShowBookingForm(true);
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 100);
   };
 
   // AI analysis complete
@@ -190,19 +211,27 @@ const CustomerHomePage = ({ userData, onLogout }) => {
   const handleViewSalon = (salon) => {
     setSelectedSalon(salon);
     setSelectedService(null);
+    setBookingSalon(null);
+    setBookingService(null);
     setShowBookingForm(false);
+    setShowSalonSelection(false);
   };
 
   const handleBookServiceFromSalon = (salon, service) => {
     setSelectedSalon(salon);
     setSelectedService(service);
+    setBookingSalon(null);
+    setBookingService(null);
     setShowBookingForm(true);
   };
 
   const handleBackFromSalon = () => {
     setSelectedSalon(null);
     setSelectedService(null);
+    setBookingSalon(null);
+    setBookingService(null);
     setShowBookingForm(false);
+    setShowSalonSelection(false);
   };
 
   const statusColor = (status) => {
@@ -234,8 +263,8 @@ const CustomerHomePage = ({ userData, onLogout }) => {
         onLogout={onLogout}
       />
 
-      {/* Salon Detail View */}
-      {selectedSalon && (
+      {/* Salon Detail View (from hero section "View" button) */}
+      {selectedSalon && !bookingSalon && (
         <>
           <SalonDetailView
             salon={selectedSalon}
@@ -243,7 +272,7 @@ const CustomerHomePage = ({ userData, onLogout }) => {
             onBack={handleBackFromSalon}
             onBookService={handleBookServiceFromSalon}
           />
-          {showBookingForm && (
+          {showBookingForm && selectedService && (
             <BookingForm
               selectedService={selectedService}
               salon={selectedSalon}
@@ -256,7 +285,7 @@ const CustomerHomePage = ({ userData, onLogout }) => {
         </>
       )}
 
-      {/* Home View */}
+      {/* Home View (also visible during service-first flow) */}
       {currentView === 'home' && !selectedSalon && (
         <>
           <CustomerHeroSection onViewSalon={handleViewSalon} />
@@ -340,13 +369,27 @@ const CustomerHomePage = ({ userData, onLogout }) => {
           <ServiceSelection
             selectedService={selectedService}
             setSelectedService={setSelectedService}
-            setShowBookingForm={setShowBookingForm}
+            onServiceSelect={handleServiceCardSelect}
           />
 
-          {/* Booking Form */}
-          {showBookingForm && (
-            <BookingForm
+          {/* Salon Selection after Service Card Pick */}
+          {showSalonSelection && selectedService && (
+            <SalonForServiceSelect
               selectedService={selectedService}
+              onSelectSalon={handleSalonSelectForService}
+              onBack={() => {
+                setShowSalonSelection(false);
+                setSelectedService(null);
+              }}
+            />
+          )}
+
+          {/* Booking Form (service-first flow) */}
+          {showBookingForm && bookingSalon && bookingService && (
+            <BookingForm
+              selectedService={bookingService}
+              salon={bookingSalon}
+              userData={userData}
               setShowConfirmation={setShowConfirmation}
               setBookingDetails={handleNewBooking}
               setShowBookingForm={setShowBookingForm}

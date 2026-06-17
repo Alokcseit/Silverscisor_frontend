@@ -2,12 +2,13 @@ import React from 'react';
 import { Star, Scissors, User, Palette, Sparkles, Zap, Clock, Check, ChevronRight } from 'lucide-react';
 import DecorativeBackground from '../../util/DecorativeBackground';
 
-const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingForm }) => {
-  
+const ServiceSelection = ({ selectedService, setSelectedService, onServiceSelect, setShowBookingForm }) => {
+
   const services = [
     {
       id: 1,
       name: 'Haircut',
+      category: 'haircut',
       icon: Scissors,
       duration: '30 min',
       price: 200,
@@ -20,6 +21,7 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
     {
       id: 2,
       name: 'Beard Trim',
+      category: 'beard',
       icon: User,
       duration: '15 min',
       price: 100,
@@ -32,19 +34,21 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
     {
       id: 3,
       name: 'Hair + Beard',
+      categories: ['haircut', 'beard'],
       icon: Zap,
       duration: '45 min',
       price: 250,
       description: 'Complete makeover combo package.',
       rating: 4.8,
       reviews: 200,
-      gradient: 'from-violet-600 to-purple-500', // Premium color
+      gradient: 'from-violet-600 to-purple-500',
       shadow: 'shadow-purple-500/20',
       featured: true
     },
     {
       id: 4,
       name: 'Hair Color',
+      category: 'color',
       icon: Palette,
       duration: '60 min',
       price: 800,
@@ -57,6 +61,7 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
     {
       id: 5,
       name: 'Facial',
+      category: 'facial',
       icon: Sparkles,
       duration: '45 min',
       price: 500,
@@ -69,6 +74,7 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
     {
       id: 6,
       name: 'Massage',
+      category: 'massage',
       icon: User,
       duration: '20 min',
       price: 150,
@@ -82,7 +88,11 @@ const ServiceSelection = ({ selectedService, setSelectedService, setShowBookingF
 
   const handleServiceClick = (service) => {
     setSelectedService(service);
-    setShowBookingForm(true);
+    if (onServiceSelect) {
+      onServiceSelect(service);
+    } else if (setShowBookingForm) {
+      setShowBookingForm(true);
+    }
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, 100);
