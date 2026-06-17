@@ -3,7 +3,7 @@
 import React from 'react';
 import {
   LayoutDashboard, Store, Users, CreditCard,
-  Activity, LogOut, Shield, ChevronLeft, ChevronRight
+  Activity, LogOut, Shield, ChevronLeft, ChevronRight, Scissors
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutAdmin } from '../../../store/adminSlice';
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { id: 'applications',   label: 'Applications',    icon: Store,           color: 'text-amber-400',  badge: true },
   { id: 'users',          label: 'Users',           icon: Users,           color: 'text-blue-400' },
   { id: 'subscriptions',  label: 'Subscriptions',   icon: CreditCard,      color: 'text-purple-400' },
+  { id: 'services',       label: 'Services',        icon: Scissors,        color: 'text-pink-400' },
   { id: 'health',         label: 'System Health',   icon: Activity,        color: 'text-green-400' },
   { id: 'logs',           label: 'System Logs',     icon: Activity,        color: 'text-gray-400' },
 ];

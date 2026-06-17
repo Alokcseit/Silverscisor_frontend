@@ -1,225 +1,207 @@
-import React from 'react';
-import { Star, Scissors, User, Palette, Sparkles, Zap, Clock, Check, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Scissors, Sparkles, Palette, Clock, User, ChevronRight, Loader2 } from 'lucide-react';
 import DecorativeBackground from '../../util/DecorativeBackground';
 
-const ServiceSelection = ({ selectedService, setSelectedService, onServiceSelect, setShowBookingForm }) => {
+const ADMIN_API = import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:5003/api/admin';
 
-  const services = [
-    {
-      id: 1,
-      name: 'Haircut',
-      category: 'haircut',
-      icon: Scissors,
-      duration: '30 min',
-      price: 200,
-      description: 'Classic & modern cuts tailored to your style.',
-      rating: 4.5,
-      reviews: 120,
-      gradient: 'from-blue-500 to-cyan-400',
-      shadow: 'shadow-blue-500/20'
-    },
-    {
-      id: 2,
-      name: 'Beard Trim',
-      category: 'beard',
-      icon: User,
-      duration: '15 min',
-      price: 100,
-      description: 'Sharp lines and perfect grooming.',
-      rating: 4.7,
-      reviews: 95,
-      gradient: 'from-emerald-500 to-teal-400',
-      shadow: 'shadow-emerald-500/20'
-    },
-    {
-      id: 3,
-      name: 'Hair + Beard',
-      categories: ['haircut', 'beard'],
-      icon: Zap,
-      duration: '45 min',
-      price: 250,
-      description: 'Complete makeover combo package.',
-      rating: 4.8,
-      reviews: 200,
-      gradient: 'from-violet-600 to-purple-500',
-      shadow: 'shadow-purple-500/20',
-      featured: true
-    },
-    {
-      id: 4,
-      name: 'Hair Color',
-      category: 'color',
-      icon: Palette,
-      duration: '60 min',
-      price: 800,
-      description: 'Premium coloring & highlights.',
-      rating: 4.6,
-      reviews: 80,
-      gradient: 'from-pink-500 to-rose-400',
-      shadow: 'shadow-pink-500/20'
-    },
-    {
-      id: 5,
-      name: 'Facial',
-      category: 'facial',
-      icon: Sparkles,
-      duration: '45 min',
-      price: 500,
-      description: 'Deep cleansing & glow therapy.',
-      rating: 4.9,
-      reviews: 150,
-      gradient: 'from-orange-500 to-amber-400',
-      shadow: 'shadow-orange-500/20'
-    },
-    {
-      id: 6,
-      name: 'Massage',
-      category: 'massage',
-      icon: User,
-      duration: '20 min',
-      price: 150,
-      description: 'Relaxing head & shoulder massage.',
-      rating: 5.0,
-      reviews: 75,
-      gradient: 'from-indigo-500 to-blue-500',
-      shadow: 'shadow-indigo-500/20'
-    }
-  ];
+const CATEGORY_ICONS = {
+  haircut: Scissors,
+  beard: User,
+  color: Palette,
+  facial: Sparkles,
+  massage: User,
+  other: Clock,
+};
+
+const CATEGORY_COLORS = {
+  haircut: { from: 'from-blue-500', to: 'to-cyan-400', shadow: 'shadow-blue-500/20' },
+  beard: { from: 'from-emerald-500', to: 'to-teal-400', shadow: 'shadow-emerald-500/20' },
+  color: { from: 'from-pink-500', to: 'to-rose-400', shadow: 'shadow-pink-500/20' },
+  facial: { from: 'from-orange-500', to: 'to-amber-400', shadow: 'shadow-orange-500/20' },
+  massage: { from: 'from-indigo-500', to: 'to-blue-500', shadow: 'shadow-indigo-500/20' },
+  other: { from: 'from-gray-500', to: 'to-slate-400', shadow: 'shadow-gray-500/20' },
+};
+
+const ServiceSelection = ({ selectedService, setSelectedService, onServiceSelect, setShowBookingForm }) => {
+  const [catalogServices, setCatalogServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${ADMIN_API}/services/catalog`);
+        const json = await res.json();
+        if (json.success) {
+          setCatalogServices(json.data || []);
+        } else {
+          setError('Failed to load services');
+        }
+      } catch {
+        setError('Could not load services');
+      }
+      setLoading(false);
+    };
+    fetchCatalog();
+  }, []);
 
   const handleServiceClick = (service) => {
-    setSelectedService(service);
+    const serviceData = {
+      ...service,
+      id: service._id,
+      category: service.category,
+      categories: undefined,
+    };
+    // Combo detection: if name contains "+" or "&", derive categories from name
+    if (service.name && (service.name.includes('+') || service.name.includes('&'))) {
+      const parts = service.name.split(/[+&]/).map(s => s.trim().toLowerCase());
+      const matchedCategories = parts.filter(p =>
+        ['haircut', 'beard', 'color', 'facial', 'massage'].includes(p)
+      );
+      if (matchedCategories.length >= 2) {
+        serviceData.categories = matchedCategories;
+      }
+    }
+    setSelectedService(serviceData);
     if (onServiceSelect) {
-      onServiceSelect(service);
+      onServiceSelect(serviceData);
     } else if (setShowBookingForm) {
       setShowBookingForm(true);
     }
-    setTimeout(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }, 100);
   };
 
+  if (loading) {
+    return (
+      <div className="w-full bg-gray-50 dark:bg-gray-950 py-16">
+        <div className="flex items-center justify-center gap-2 text-gray-400">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Loading services...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full bg-gray-50 dark:bg-gray-950 py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-red-500 text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative w-full bg-gray-50 dark:bg-gray-950 py-16 transition-colors duration-300 overflow-hidden">
-      
+    <div className="relative w-full bg-gray-50 dark:bg-gray-950 py-12 transition-colors duration-300 overflow-hidden">
+
       {/* Dynamic Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
            style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
       </div>
-      
+
       <div className="absolute inset-0 z-0">
          <DecorativeBackground />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Modern Header */}
-        <div className="text-center mb-16 space-y-4">
+
+        {/* Header */}
+        <div className="text-center mb-10 space-y-3">
           <span className="inline-block py-1 px-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs font-bold tracking-wider uppercase border border-purple-200 dark:border-purple-700">
             Services Menu
           </span>
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
             Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Style</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Premium grooming services designed for the modern gentleman.
-          </p>
         </div>
 
-        {/* Premium Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {services.map((service) => {
-            const IconComponent = service.icon;
-            const isSelected = selectedService?.id === service.id;
+        {/* Cards Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          {catalogServices.map((service) => {
+            const IconComponent = CATEGORY_ICONS[service.category] || Clock;
+            const colors = CATEGORY_COLORS[service.category] || CATEGORY_COLORS.other;
+            const isSelected = selectedService?._id === service._id || selectedService?.id === service._id;
+            const hasImage = service.imageUrl;
 
             return (
               <div
-                key={service.id}
+                key={service._id}
                 onClick={() => handleServiceClick(service)}
                 className={`
-                  group relative rounded-3xl p-1 cursor-pointer transition-all duration-300 ease-out
-                  ${isSelected ? 'transform -translate-y-2' : 'hover:-translate-y-1'}
+                  group relative rounded-2xl cursor-pointer transition-all duration-200 ease-out
+                  ${isSelected ? 'transform -translate-y-1' : 'hover:-translate-y-0.5'}
                 `}
               >
-                {/* Gradient Border Effect (Absolute) */}
+                {/* Card */}
                 <div className={`
-                  absolute inset-0 rounded-3xl bg-gradient-to-br opacity-0 transition-opacity duration-300
-                  ${service.gradient}
-                  ${isSelected ? 'opacity-100 blur-sm' : 'group-hover:opacity-70 group-hover:blur-sm'}
-                `}></div>
-
-                {/* Main Card Content */}
-                <div className={`
-                  relative h-full bg-white dark:bg-gray-900 rounded-[22px] p-6 overflow-hidden border transition-colors
-                  ${isSelected ? 'border-transparent' : 'border-gray-100 dark:border-gray-800'}
+                  relative overflow-hidden rounded-2xl border transition-all duration-200
+                  ${isSelected
+                    ? 'border-purple-500 ring-2 ring-purple-500/30 shadow-lg shadow-purple-500/20'
+                    : 'border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md'
+                  }
                 `}>
-                  
-                  {/* Background Blobs for specific card */}
-                  <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-full blur-2xl group-hover:opacity-10 transition-opacity`}></div>
-
-                  {/* Top Section: Icon & Price */}
-                  <div className="flex justify-between items-start mb-6">
-                    {/* Icon Box */}
-                    <div className={`
-                      w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3
-                      bg-gradient-to-br ${service.gradient} ${service.shadow}
-                    `}>
-                      <IconComponent className="w-7 h-7" strokeWidth={1.5} />
+                  {/* Background Image */}
+                  {hasImage ? (
+                    <div className="relative h-28 sm:h-32 bg-gray-100 dark:bg-gray-800">
+                      <img
+                        src={service.imageUrl}
+                        alt={service.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                      {/* Icon on image */}
+                      <div className="absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center bg-white/20 backdrop-blur-sm text-white">
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      {/* Name on image */}
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <h3 className="text-sm font-bold text-white drop-shadow-sm leading-tight">
+                          {service.name}
+                        </h3>
+                        {service.description && (
+                          <p className="text-[10px] text-white/70 mt-0.5 line-clamp-1 drop-shadow-sm">
+                            {service.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Price Tag */}
-                    <div className="text-right">
-                      <p className="text-2xl font-black text-gray-900 dark:text-white">₹{service.price}</p>
-                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500">Starting price</p>
-                    </div>
-                  </div>
-
-                  {/* Middle Section: Info */}
-                  <div className="mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      {service.name}
-                      {service.featured && (
-                         <span className="bg-gradient-to-r from-amber-200 to-yellow-400 text-yellow-900 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
-                           BESTSELLER
-                         </span>
+                  ) : (
+                    <div className={`h-28 sm:h-32 bg-gradient-to-br ${colors.from} ${colors.to} flex flex-col items-center justify-center p-3 text-white`}>
+                      <IconComponent className="w-8 h-8 mb-1 opacity-80" strokeWidth={1.5} />
+                      <h3 className="text-sm font-bold text-center leading-tight drop-shadow-sm">
+                        {service.name}
+                      </h3>
+                      {service.description && (
+                        <p className="text-[10px] text-white/70 mt-0.5 text-center line-clamp-1">
+                          {service.description}
+                        </p>
                       )}
-                    </h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
-
-                  {/* Bottom Section: Metrics & Action */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
-                    
-                    {/* Duration & Rating */}
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                        <Clock className="w-3.5 h-3.5" />
-                        {service.duration}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs font-bold text-gray-700 dark:text-gray-300">
-                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                        {service.rating} <span className="text-gray-400 font-normal">({service.reviews})</span>
-                      </div>
                     </div>
+                  )}
 
-                    {/* Select Button Indicator */}
-                    <div className={`
-                      h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300
-                      ${isSelected 
-                        ? `bg-gradient-to-r ${service.gradient} text-white shadow-md scale-110` 
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
-                      }
-                    `}>
-                      {isSelected ? <Check className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                    </div>
+                  {/* Select indicator */}
+                  <div className={`
+                    absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200
+                    ${isSelected
+                      ? 'bg-purple-600 text-white shadow-md scale-110'
+                      : 'bg-white/80 backdrop-blur-sm text-gray-400 opacity-0 group-hover:opacity-100'
+                    }
+                  `}>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </div>
-
                 </div>
               </div>
             );
           })}
         </div>
+
+        {catalogServices.length === 0 && (
+          <div className="text-center py-10 text-gray-400">
+            <Scissors className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No services available</p>
+          </div>
+        )}
       </div>
     </div>
   );
